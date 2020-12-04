@@ -5,6 +5,7 @@ class Node:
     def __init__(self, name, properties, publisher=None, subscriber=None):
         self.name = name
 
+        self._properties = []
         self.set_properties(properties)
 
         self.publisher = None
@@ -14,8 +15,8 @@ class Node:
     def set_properties(self, properties):
         """
         Args:
-            properties (list of dictionaries): Each dictionary contains the name the
-                value and the type of the property
+            properties (list of dictionaries): Each dictionary contains the name,
+                the value and the type of the property
         """
         for property_dict in properties:
             property_value = property_dict['value']
@@ -26,6 +27,8 @@ class Node:
                 property_value = typecast_func(property_value)
             setattr(self, property_dict['name'], property_value)
 
+            self._properties.append(property_dict['name'])
+
     def set_publisher(self, publisher):
         if publisher:
             self.publisher = Publisher(self)
@@ -33,6 +36,10 @@ class Node:
     def set_subscriber(self, subscriber):
         if subscriber:
             self.subscriber = Subscriber(self)
+
+    @property
+    def properties(self):
+        return {x: getattr(self, x) for x in self._properties}
 
     def __str__(self):
         return self.name
@@ -46,6 +53,10 @@ class Publisher:
         self.node = node
         self.topic = f'{self.node.name}.data'
         self.commlib_publisher = None
+        self.payload = node.properties
+
+    def publish(self):
+        self.commlib_publisher.publish(self.payload)
 
     def __repr__(self):
         return f'Publisher of: {self.node}'
