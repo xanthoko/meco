@@ -2,6 +2,8 @@ from textx import metamodel_from_file
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
+import sys
+
 from utils import search
 from entities import Node, Connector
 
@@ -14,12 +16,12 @@ def on_message(msg):
 
 
 class NodesHandler:
-    def __init__(self):
+    def __init__(self, model_path='models/nodes.ent'):
         self.nodes = []
         self.connectors = []
 
         metamodel = metamodel_from_file('models/grammar.tx')
-        self.model = metamodel.model_from_file('models/nodes.ent')
+        self.model = metamodel.model_from_file(model_path)
 
         self.parse_model()
 
@@ -99,9 +101,22 @@ class NodesHandler:
         return search(self.nodes, 'name', name)
 
 
-a = NodesHandler()
-a.create_commlib_nodes_and_publishers()
-a.connect_commlib_entities()
+if __name__ == '__main__':
+    arguments = sys.argv[1:]
 
-p = a.nodes[0].publisher.commlib_publisher
-s = a.nodes[-1].subscriber.commlib_subscriber
+    try:
+        if arguments[0] == 'test':
+            model_path = 'models/example.ent'
+            a = NodesHandler(model_path)
+            a.create_commlib_nodes_and_publishers()
+            a.connect_commlib_entities()
+
+            service_arg = arguments[1]
+            print(service_arg)
+            if service_arg in ['s', 'sub', 'subscriber']:
+                test_subscriber = a.nodes[-1].subscriber.commlib_subscriber
+                test_subscriber.run_forever()
+            else:
+                test_publisher = a.nodes[0].publisher
+    except IndexError:
+        pass

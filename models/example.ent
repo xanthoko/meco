@@ -1,0 +1,24 @@
+Node thermoSensor{
+    properties:
+        temperature:
+            type: Float
+            value: '14.2'
+    outPorts:
+        - publisher
+}
+
+Node ACDevice{
+    properties:
+        isOn:
+            type: Boolean
+            value: 'True'
+        temperature:
+            type: Float
+    inPorts:
+        - subscriber
+}
+
+Connector temp{
+    fromPort: thermoSensor.publisher
+    toPort: ACDevice.subscriber
+}
