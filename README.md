@@ -1,0 +1,7 @@
+- [x] Create Basic Grammar
+- [x] Parse Model
+- [x] Create commlib entities
+- [x] Connect commlib entities via connector
+- [ ] Add dataModel to Ports
+- [ ] Test Publishers
+- [ ] Integrate RPC communications
