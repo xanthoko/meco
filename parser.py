@@ -86,6 +86,7 @@ class NodesHandler:
 
             if to_port:
                 connection_topic = from_port.topic
+                # basically create a subscriber with the same topic as the publisher
                 commlib_subscriber = to_node.commlib_node.create_subscriber(
                     topic=connection_topic, on_message=on_message)
                 to_port.topic = connection_topic
@@ -112,7 +113,6 @@ if __name__ == '__main__':
             a.connect_commlib_entities()
 
             service_arg = arguments[1]
-            print(service_arg)
             if service_arg in ['s', 'sub', 'subscriber']:
                 test_subscriber = a.nodes[-1].subscriber.commlib_subscriber
                 test_subscriber.run_forever()
