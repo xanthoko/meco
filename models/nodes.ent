@@ -1,0 +1,36 @@
+Node thermoSensor{
+    properties:
+        temperature:
+            type: Float
+    outPorts:
+        - publisher
+        - rpc_service
+}
+
+Node sonarSensor{
+    outPorts:
+        - publisher
+}
+
+Node TV{
+    properties:
+        isON:
+            type: Boolean
+            value: 'True'
+}
+
+Node ACDevice{
+    properties:
+        isOn:
+            type: Boolean
+            value: 'True'
+        temperature:
+            type: Float
+    inPorts:
+        - subscriber
+}
+
+Connector temp{
+    fromPort: thermoSensor.publisher
+    toPort: ACDevice.subscriber
+}

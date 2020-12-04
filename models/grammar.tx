@@ -1,0 +1,40 @@
+Entities:
+    (nodes*=Node
+    connectors*=Connector)#
+;
+
+Node:
+    'Node' name=ID '{'
+        (('properties:' properties*=Property)?
+        ('outPorts:' outports*=OutPort)?
+        ('inPorts:' inports*=InPort)?)#
+    '}'
+;
+
+OutPort:
+    '-' type=ID
+;
+
+InPort:
+    '-' type=ID
+;
+
+Property:
+    name=ID ':'
+        'type:' type=DataType
+        ('value:' value=STRING)?
+;
+
+DataType:
+    'Integer' | 'Float' | 'String' | 'Boolean'
+;
+
+Connector:
+    'Connector' name=ID '{'
+        (('fromPort:' fromNode=[Node] '.' fromPort=FQN)?
+        ('toPort:' toNode=[Node] '.' toPort=FQN)?)#
+    '}'
+;
+
+
+FQN: ID+['.'];

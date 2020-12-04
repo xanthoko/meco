@@ -1,0 +1,45 @@
+
+    digraph textX {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    node[
+        shape=record,
+        style=filled,
+        fillcolor=aliceblue
+    ]
+    nodesep = 0.3
+    edge[dir=black,arrowtail=empty]
+
+
+140244464101456[ label="{Entities|}"]
+
+140244464104288[ label="{Node|name: ID\l}"]
+
+140244464174832[ label="{OutPort|type: ID\l}"]
+
+140244464210032[ label="{InPort|type: ID\l}"]
+
+140244464213440[ label="{Property|name: ID\ltype: DataType\lvalue: STRING\l}"]
+
+140244464212496[ label="{Connector|name: ID\lfromPort: FQN\ltoPort: FQN\l}"]
+
+
+
+140244464101456 -> 140244464104288[arrowtail=diamond, dir=both, headlabel="nodes 0..*"]
+140244464101456 -> 140244464212496[arrowtail=diamond, dir=both, headlabel="connectors 0..*"]
+140244464104288 -> 140244464213440[arrowtail=diamond, dir=both, headlabel="properties 0..*"]
+140244464104288 -> 140244464174832[arrowtail=diamond, dir=both, headlabel="outports 0..*"]
+140244464104288 -> 140244464210032[arrowtail=diamond, dir=both, headlabel="inports 0..*"]
+140244464212496 -> 140244464104288[headlabel="fromNode "]
+140244464212496 -> 140244464104288[headlabel="toNode "]
+match_rules [ shape=plaintext, label=< <table>
+	<tr>
+		<td><b>DataType</b></td><td>Integer|Float|String|Boolean</td>
+	</tr>
+	<tr>
+		<td><b>FQN</b></td><td>FQN</td>
+	</tr>
+</table> >]
+
+
+}

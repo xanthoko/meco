@@ -1,0 +1,44 @@
+
+    digraph textX {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    node[
+        shape=record,
+        style=filled,
+        fillcolor=aliceblue
+    ]
+    nodesep = 0.3
+    edge[dir=black,arrowtail=empty]
+
+
+4410213184 -> 4410169664 [label="nodes:0" arrowtail=diamond dir=both]
+4410169664 -> 4410237328 [label="properties:0" arrowtail=diamond dir=both]
+4410237328[label="{temperature:Property|+type:str='Float'\l+value:str=''\l}"]
+4410169664 -> 4410237184 [label="outports:0" arrowtail=diamond dir=both]
+4410237184[label="{:OutPort|+type:str='publisher'\l}"]
+4410169664 -> 4410238096 [label="outports:1" arrowtail=diamond dir=both]
+4410238096[label="{:OutPort|+type:str='rpc_service'\l}"]
+4410169664[label="{thermoSensor:Node|inports:list=[]\l}"]
+4410213184 -> 4410168224 [label="nodes:1" arrowtail=diamond dir=both]
+4410168224 -> 4410237280 [label="outports:0" arrowtail=diamond dir=both]
+4410237280[label="{:OutPort|+type:str='publisher'\l}"]
+4410168224[label="{sonarSensor:Node|properties:list=[]\linports:list=[]\l}"]
+4410213184 -> 4410168368 [label="nodes:2" arrowtail=diamond dir=both]
+4410168368 -> 4410238336 [label="properties:0" arrowtail=diamond dir=both]
+4410238336[label="{isON:Property|+type:str='Boolean'\l+value:str='True'\l}"]
+4410168368[label="{TV:Node|outports:list=[]\linports:list=[]\l}"]
+4410213184 -> 4410239152 [label="nodes:3" arrowtail=diamond dir=both]
+4410239152 -> 4410086256 [label="properties:0" arrowtail=diamond dir=both]
+4410086256[label="{isOn:Property|+type:str='Boolean'\l+value:str='True'\l}"]
+4410239152 -> 4410086880 [label="properties:1" arrowtail=diamond dir=both]
+4410086880[label="{temperature:Property|+type:str='Float'\l+value:str=''\l}"]
+4410239152 -> 4410087312 [label="inports:0" arrowtail=diamond dir=both]
+4410087312[label="{:InPort|+type:str='subscriber'\l}"]
+4410239152[label="{ACDevice:Node|outports:list=[]\l}"]
+4410213184 -> 4410238288 [label="connectors:0" arrowtail=diamond dir=both]
+4410238288 -> 4410169664 [label="fromNode" ]
+4410238288 -> 4410239152 [label="toNode" ]
+4410238288[label="{temp:Connector|+fromPort:str='publisher'\l+toPort:str='subscriber'\l}"]
+4410213184[label="{:Entities|}"]
+
+}
