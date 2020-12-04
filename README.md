@@ -2,6 +2,7 @@
 - [x] Parse Model
 - [x] Create commlib entities
 - [x] Connect commlib entities via connector
+- [ ] Create a test environment
 - [ ] Add dataModel to Ports
 - [ ] Test Publishers
 - [ ] Integrate RPC communications
