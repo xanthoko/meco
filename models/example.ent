@@ -1,19 +1,16 @@
 Node thermoSensor{
     properties:
-        temperature:
-            type: Float
-            value: '14.2'
+        Float temperature = '14.2'
     outPorts:
-        - publisher
+        - publisher:
+            Float temperature
+            Float humidity = '12.2'
 }
 
 Node ACDevice{
     properties:
-        isOn:
-            type: Boolean
-            value: 'True'
-        temperature:
-            type: Float
+        Boolean isOn = 'True'
+        Float temperature
     inPorts:
         - subscriber
 }

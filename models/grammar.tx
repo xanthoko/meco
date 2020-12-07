@@ -12,17 +12,19 @@ Node:
 ;
 
 OutPort:
-    '-' type=ID
+    '-' type=ID (':' object=Object)?
 ;
 
 InPort:
     '-' type=ID
 ;
 
+Object:
+    fields*=Property
+;
+
 Property:
-    name=ID ':'
-        'type:' type=DataType
-        ('value:' value=STRING)?
+    type=[DataType|FQN] name=ID ('=' value=STRING)?
 ;
 
 DataType:
@@ -38,3 +40,11 @@ Connector:
 
 
 FQN: ID+['.'];
+
+
+// Comments
+Comment: CommentLine | CommentBlock ;
+
+CommentLine: /\/\/.*?$/;
+
+CommentBlock: /\/\*(.|\n)*?\*\//;

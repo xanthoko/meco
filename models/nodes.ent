@@ -1,10 +1,9 @@
 Node thermoSensor{
-    properties:
-        temperature:
-            type: Float
     outPorts:
-        - publisher
-        - rpc_service
+        - publisher:
+            Float temperature = '10'
+            Float humidity
+        - rpc_service:
 }
 
 Node sonarSensor{
@@ -14,18 +13,13 @@ Node sonarSensor{
 
 Node TV{
     properties:
-        isON:
-            type: Boolean
-            value: 'True'
+        Boolean isOn = 'True'
 }
 
 Node ACDevice{
     properties:
-        isOn:
-            type: Boolean
-            value: 'True'
-        temperature:
-            type: Float
+        Boolean isOn = 'True'
+        Float temperature
     inPorts:
         - subscriber
 }
