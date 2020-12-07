@@ -1,4 +1,4 @@
-type_map = {'Float': float, 'Integer': int, 'Boolean': bool}
+from utils import typecasted_value
 
 
 class Node:
@@ -12,26 +12,31 @@ class Node:
         self.subscriber = None
         self.commlib_node = None
 
-    def set_properties(self, properties):
+    def set_properties(self, model_properties):
         """
         Args:
-            properties (list of dictionaries): Each dictionary contains the name,
-                the value and the type of the property
+            properties (list of model properties): Each properties has a name, type
+                and value attribute.
         """
-        for property_dict in properties:
-            property_value = property_dict['value']
-
-            if property_value is not None:
-                property_type = property_dict['type']
-                typecast_func = type_map[property_type]
-                property_value = typecast_func(property_value)
-            setattr(self, property_dict['name'], property_value)
-
-            self._properties.append(property_dict['name'])
+        for model_property in model_properties:
+            setattr(self, model_property.name, typecasted_value(model_property))
+            self._properties.append(model_property.name)
 
     def set_publisher(self, publisher):
+        """
+        Args:
+            publisher (Publisher Model)
+        """
         if publisher:
-            self.publisher = Publisher(self)
+            data_object = publisher.object
+            if data_object:
+                payload = {
+                    field.name: typecasted_value(field)
+                    for field in data_object.fields
+                }
+            else:
+                payload = {}
+            self.publisher = Publisher(self, payload)
 
     def set_subscriber(self, subscriber):
         if subscriber:
@@ -49,11 +54,14 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, node):
+    def __init__(self, node, payload={}):
         self.node = node
         self.topic = f'{self.node.name}.data'
         self.commlib_publisher = None
-        self.payload = node.properties
+        self.payload = payload
+
+    def update_payload(self, payload):
+        self.payload = payload
 
     def publish(self):
         self.commlib_publisher.publish(self.payload)

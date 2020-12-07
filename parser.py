@@ -33,16 +33,10 @@ class NodesHandler:
         model_nodes = self.model.nodes
 
         for model_node in model_nodes:
-            properties = [{
-                'name': x.name,
-                'type': x.type,
-                'value': x.value if x.value else None
-            } for x in model_node.properties]
-
             out_publisher = search(model_node.outports, 'type', 'publisher')
             in_subscriber = search(model_node.inports, 'type', 'subscriber')
 
-            node_obj = Node(model_node.name, properties)
+            node_obj = Node(model_node.name, model_node.properties)
             node_obj.set_publisher(out_publisher)
             node_obj.set_subscriber(in_subscriber)
             self._append_node(node_obj)
@@ -105,18 +99,17 @@ class NodesHandler:
 if __name__ == '__main__':
     arguments = sys.argv[1:]
 
-    try:
-        if arguments[0] == 'test':
-            model_path = 'models/example.ent'
-            a = NodesHandler(model_path)
-            a.create_commlib_nodes_and_publishers()
-            a.connect_commlib_entities()
+    if len(arguments) and arguments[0] == 'test':
+        model_path = 'models/example.ent'
+        a = NodesHandler(model_path)
+        a.create_commlib_nodes_and_publishers()
+        a.connect_commlib_entities()
 
-            service_arg = arguments[1]
-            if service_arg in ['s', 'sub', 'subscriber']:
-                test_subscriber = a.nodes[-1].subscriber.commlib_subscriber
-                test_subscriber.run_forever()
-            else:
-                test_publisher = a.nodes[0].publisher
-    except IndexError:
-        pass
+        service_arg = arguments[1]
+        if service_arg in ['s', 'sub', 'subscriber']:
+            test_subscriber = a.nodes[-1].subscriber.commlib_subscriber
+            test_subscriber.run_forever()
+        else:
+            test_publisher = a.nodes[0].publisher
+    else:
+        a = NodesHandler()
