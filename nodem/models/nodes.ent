@@ -3,7 +3,7 @@ Node thermoSensor{
         - publisher:
             Float temperature = '10'
             Float humidity
-        - rpc_service:
+        - rpc_service
 }
 
 Node sonarSensor{
@@ -22,6 +22,7 @@ Node ACDevice{
         Float temperature
     inPorts:
         - subscriber
+        - rpc_client
 }
 
 Connector temp{
