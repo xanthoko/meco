@@ -9,6 +9,7 @@
 - [ ] Make a test case with a real sensor and arduino
 - [ ] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol
+- [ ] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
 
 
 ## Example
