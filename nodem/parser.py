@@ -2,8 +2,6 @@ from textx import metamodel_from_file
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
-import sys
-
 from utils import search
 from entities import Node, Connector
 

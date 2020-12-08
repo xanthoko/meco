@@ -1,4 +1,5 @@
 from utils import typecasted_value
+from exceptions import InvalidPortError
 
 
 class Node:
@@ -89,12 +90,18 @@ class Connector:
             to_node (Node)
             to_port_type (string): The type of the port (subscriber or rpc_client)
         """
-        self.from_node = from_node
-        self.from_port = getattr(from_node,
-                                 from_port_type)  # Publisher or RPC_Service object
-        self.to_node = to_node
-        self.to_port = getattr(to_node,
-                               to_port_type)  # Subscriber or RPC_Client object
+        try:
+            self.from_node = from_node
+            self.from_port = getattr(
+                from_node, from_port_type)  # Publisher or RPC_Service object
+        except AttributeError:
+            raise InvalidPortError(from_node, from_port_type)
+        try:
+            self.to_node = to_node
+            self.to_port = getattr(to_node,
+                                   to_port_type)  # Subscriber or RPC_Client object
+        except AttributeError:
+            raise InvalidPortError(to_node, to_port_type)
 
     def __repr__(self):
         return f'{self.from_port} -> {self.to_port}'
