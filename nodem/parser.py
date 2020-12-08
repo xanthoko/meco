@@ -97,19 +97,4 @@ class NodesHandler:
 
 
 if __name__ == '__main__':
-    arguments = sys.argv[1:]
-
-    if len(arguments) and arguments[0] == 'test':
-        model_path = 'models/example.ent'
-        a = NodesHandler(model_path)
-        a.create_commlib_nodes_and_publishers()
-        a.connect_commlib_entities()
-
-        service_arg = arguments[1]
-        if service_arg in ['s', 'sub', 'subscriber']:
-            test_subscriber = a.nodes[-1].subscriber.commlib_subscriber
-            test_subscriber.run_forever()
-        else:
-            test_publisher = a.nodes[0].publisher
-    else:
-        a = NodesHandler()
+    a = NodesHandler()
