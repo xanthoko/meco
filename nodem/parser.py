@@ -3,13 +3,13 @@ from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from utils import search
-from entities import Node, Connector
+from entities import Node, Connector, Subscriber
 
 transport = TransportType.AMQP
 conn_params = ConnectionParameters()
 
 
-def on_message(msg):
+def default_on_message(msg):
     print(f'Message: {msg}')
 
 
@@ -26,6 +26,9 @@ class NodesHandler:
     def parse_model(self):
         self._parse_nodes()
         self._parse_connectors()
+        self._create_commlib_nodes_and_outports()
+        self._connect_commlib_entities()
+        self._create_rogue_commlib_subscribers()
 
     def _parse_nodes(self):
         model_nodes = self.model.nodes
@@ -37,6 +40,7 @@ class NodesHandler:
             node_obj = Node(model_node.name, model_node.properties)
             node_obj.set_publisher(out_publisher)
             node_obj.set_subscriber(in_subscriber)
+
             self._append_node(node_obj)
 
     def _parse_connectors(self):
@@ -54,7 +58,7 @@ class NodesHandler:
             connector_obj = Connector(from_node, from_port, to_node, to_port)
             self._append_connector(connector_obj)
 
-    def create_commlib_nodes_and_publishers(self):
+    def _create_commlib_nodes_and_outports(self):
         for node in self.nodes:
             commlib_node = CommNode(node_name=node.name,
                                     transport_type=transport,
@@ -70,19 +74,29 @@ class NodesHandler:
                 topic=node_publisher.topic)
             node_publisher.commlib_publisher = commlib_publisher
 
-    def connect_commlib_entities(self):
+    def _connect_commlib_entities(self):
         for connector in self.connectors:
             from_port = connector.from_port
-            to_node = connector.to_node
             to_port = connector.to_port
 
-            if to_port:
-                connection_topic = from_port.topic
-                # basically create a subscriber with the same topic as the publisher
-                commlib_subscriber = to_node.commlib_node.create_subscriber(
-                    topic=connection_topic, on_message=on_message)
-                to_port.topic = connection_topic
-                to_port.commlib_subscriber = commlib_subscriber
+            if isinstance(to_port, Subscriber):
+                self._create_commlib_subscriber(to_port, from_port.topic)
+
+    def _create_rogue_commlib_subscribers(self):
+        for node in self.nodes:
+            if node.subscriber and node.subscriber.commlib_subscriber is None:
+                self._create_commlib_subscriber(node.subscriber)
+
+    def _create_commlib_subscriber(self,
+                                   subscriber,
+                                   topic=None,
+                                   on_message_callback=None):
+        on_message = on_message_callback or default_on_message
+        node = subscriber.node
+        subscriber.topic = topic or subscriber.topic
+        commlib_subscriber = node.commlib_node.create_subscriber(
+            topic=subscriber.topic, on_message=on_message)
+        subscriber.commlib_subscriber = commlib_subscriber
 
     def _append_node(self, node):
         self.nodes.append(node)

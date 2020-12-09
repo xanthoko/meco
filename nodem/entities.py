@@ -74,7 +74,7 @@ class Publisher:
 class Subscriber:
     def __init__(self, node):
         self.node = node
-        self.topic = None
+        self.topic = f'{self.node.name}.data'
         self.commlib_subscriber = None
 
     def __repr__(self):
@@ -91,13 +91,11 @@ class Connector:
             to_port_type (string): The type of the port (subscriber or rpc_client)
         """
         try:
-            self.from_node = from_node
             self.from_port = getattr(
                 from_node, from_port_type)  # Publisher or RPC_Service object
         except AttributeError:
             raise InvalidPortError(from_node, from_port_type)
         try:
-            self.to_node = to_node
             self.to_port = getattr(to_node,
                                    to_port_type)  # Subscriber or RPC_Client object
         except AttributeError:

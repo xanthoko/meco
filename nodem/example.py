@@ -5,11 +5,7 @@ from parser import NodesHandler
 
 def get_example_node_parser():
     model_path = 'models/example.ent'
-    nh = NodesHandler(model_path)
-    nh.create_commlib_nodes_and_publishers()
-    nh.connect_commlib_entities()
-
-    return nh
+    return NodesHandler(model_path)
 
 
 def get_example_publisher(node_parser):
