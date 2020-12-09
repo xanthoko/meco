@@ -1,13 +1,25 @@
+import functools
+
+
+def rgetattr(obj, attr, *args):
+    """Enhanced getattr to work in this case: rgetattr(obj, 'sub1.sub2')"""
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
 def search(iteratable, field, value):
     """Returns the item in the iterable for which item.field == value"""
     try:
-        return next(item for item in iteratable if getattr(item, field) == value)
+        return next(item for item in iteratable if rgetattr(item, field) == value)
     except StopIteration:
         return
 
 
 def typecasted_value(property):
     """Typecasting property.value to property.type
+
     Args:
         property (Property Model): Contains default, name and type attributes
     """
