@@ -17,6 +17,10 @@ def search(iteratable, field, value):
         return
 
 
+def get_all(iterable, field, value):
+    return list(filter(lambda x: rgetattr(x, field) == value, iterable))
+
+
 def typecasted_value(property):
     """Typecasting property.value to property.type
 

@@ -9,7 +9,7 @@ def get_example_node_parser():
 
 
 def get_example_publisher(node_parser):
-    return node_parser.nodes[0].publisher
+    return node_parser.nodes[0].publishers[0]
 
 
 def get_example_subscriber(node_parser):

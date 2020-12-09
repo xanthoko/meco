@@ -9,7 +9,7 @@ class Node:
         self._properties = []
         self.set_properties(properties)
 
-        self.publisher = None
+        self.publishers = []
         self.subscriber = None
         self.commlib_node = None
 
@@ -23,12 +23,12 @@ class Node:
             setattr(self, model_property.name, typecasted_value(model_property))
             self._properties.append(model_property.name)
 
-    def set_publisher(self, publisher):
+    def set_publishers(self, publishers):
         """
         Args:
-            publisher (Publisher Model)
+            publishers (list of Publisher Model)
         """
-        if publisher:
+        for publisher in publishers:
             data_object = publisher.object
             if data_object:
                 payload = {
@@ -37,7 +37,7 @@ class Node:
                 }
             else:
                 payload = {}
-            self.publisher = Publisher(self, payload)
+            self.publishers.append(Publisher(self, publisher.name, payload))
 
     def set_subscriber(self, subscriber):
         if subscriber:
@@ -55,9 +55,10 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, node, payload={}):
+    def __init__(self, node, name, payload={}):
         self.node = node
-        self.topic = f'{self.node.name}.data'
+        self.name = name
+        self.topic = f'{self.node.name}.{self.name}.data'
         self.commlib_publisher = None
         self.payload = payload
 
@@ -66,6 +67,9 @@ class Publisher:
 
     def publish(self):
         self.commlib_publisher.publish(self.payload)
+
+    def __str__(self):
+        return self.name
 
     def __repr__(self):
         return f'Publisher of: {self.node}'
@@ -82,19 +86,14 @@ class Subscriber:
 
 
 class Connector:
-    def __init__(self, from_node, from_port_type, to_node, to_port_type):
+    def __init__(self, from_port, to_node, to_port_type):
         """
         Args:
-            from_node (Node)
-            from_port_type (string): The type of the port (publisher or rpc_service)
+            from_port (Model): Publisher or RPC_Service model
             to_node (Node)
             to_port_type (string): The type of the port (subscriber or rpc_client)
         """
-        try:
-            self.from_port = getattr(
-                from_node, from_port_type)  # Publisher or RPC_Service object
-        except AttributeError:
-            raise InvalidPortError(from_node, from_port_type)
+        self.from_port = from_port
         try:
             self.to_port = getattr(to_node,
                                    to_port_type)  # Subscriber or RPC_Client object
