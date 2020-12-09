@@ -1,14 +1,15 @@
 Node thermoSensor{
     outPorts:
-        - publisher:
+        - publisher thPub:
             Float temperature = '10'
             Float humidity
-        - rpc_service
+        - publisher tPub:
+            Float temperature = '3'
 }
 
 Node sonarSensor{
     outPorts:
-        - publisher
+        - publisher ssPub
 }
 
 Node TV{
@@ -28,6 +29,6 @@ Node ACDevice{
 }
 
 Connector temp{
-    fromPort: thermoSensor.publisher
+    fromPort: thPub
     toPort: ACDevice.subscriber
 }

@@ -2,7 +2,7 @@ Node thermoSensor{
     properties:
         Float temperature = '14.2'
     outPorts:
-        - publisher:
+        - publisher thermoPub:
             Float temperature
             Float humidity = '12.2'
 }
@@ -16,6 +16,6 @@ Node ACDevice{
 }
 
 Connector temp{
-    fromPort: thermoSensor.publisher
+    fromPort: thermoPub
     toPort: ACDevice.subscriber
 }
