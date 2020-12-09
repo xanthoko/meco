@@ -1,4 +1,5 @@
 from textx import metamodel_from_file
+from traceback_with_variables import activate_by_import
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
