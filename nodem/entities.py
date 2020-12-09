@@ -1,5 +1,4 @@
 from utils import typecasted_value
-from exceptions import InvalidPortError
 
 
 class Node:
@@ -10,7 +9,7 @@ class Node:
         self.set_properties(properties)
 
         self.publishers = []
-        self.subscriber = None
+        self.subscribers = []
         self.commlib_node = None
 
     def set_properties(self, model_properties):
@@ -39,9 +38,13 @@ class Node:
                 payload = {}
             self.publishers.append(Publisher(self, publisher.name, payload))
 
-    def set_subscriber(self, subscriber):
-        if subscriber:
-            self.subscriber = Subscriber(self)
+    def set_subscribers(self, subscribers):
+        """
+        Args:
+            subscribers (list of Subscriber Model)
+        """
+        for subscriber in subscribers:
+            self.subscribers.append(Subscriber(self, subscriber.name))
 
     @property
     def properties(self):
@@ -76,29 +79,28 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, node):
+    def __init__(self, node, name):
         self.node = node
-        self.topic = f'{self.node.name}.data'
+        self.name = name
+        self.topic = f'{self.node.name}.{self.name}.data'
         self.commlib_subscriber = None
+
+    def __str__(self):
+        return self.name
 
     def __repr__(self):
         return f'Subscriber of: {self.node}'
 
 
 class Connector:
-    def __init__(self, from_port, to_node, to_port_type):
+    def __init__(self, from_port, to_port):
         """
         Args:
             from_port (Model): Publisher or RPC_Service model
-            to_node (Node)
-            to_port_type (string): The type of the port (subscriber or rpc_client)
+            to_port (Model): Subscriber or RPC_Client model
         """
         self.from_port = from_port
-        try:
-            self.to_port = getattr(to_node,
-                                   to_port_type)  # Subscriber or RPC_Client object
-        except AttributeError:
-            raise InvalidPortError(to_node, to_port_type)
+        self.to_port = to_port
 
     def __repr__(self):
         return f'{self.from_port} -> {self.to_port}'

@@ -16,7 +16,7 @@ Node TV{
     properties:
         Boolean isOn = 'True'
     inPorts:
-        - subscriber
+        - subscriber tvSub
 }
 
 Node ACDevice{
@@ -24,11 +24,10 @@ Node ACDevice{
         Boolean isOn = 'True'
         Float temperature
     inPorts:
-        - subscriber
-        - rpc_client
+        - subscriber acSub
 }
 
 Connector temp{
     fromPort: thPub
-    toPort: ACDevice.subscriber
+    toPort: acSub
 }

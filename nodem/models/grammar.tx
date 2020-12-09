@@ -16,7 +16,7 @@ OutPort:
 ;
 
 InPort:
-    '-' type=ID
+    '-' type=ID name=ID
 ;
 
 Object:
@@ -34,7 +34,7 @@ DataType:
 Connector:
     'Connector' name=ID '{'
         (('fromPort:' fromPort=[OutPort])?
-        ('toPort:' toNode=[Node] '.' toPort=FQN)?)#
+        ('toPort:' toPort=[InPort])?)#
     '}'
 ;
 

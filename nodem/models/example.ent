@@ -12,10 +12,10 @@ Node ACDevice{
         Boolean isOn = 'True'
         Float temperature
     inPorts:
-        - subscriber
+        - subscriber acSub
 }
 
 Connector temp{
     fromPort: thermoPub
-    toPort: ACDevice.subscriber
+    toPort: acSub
 }

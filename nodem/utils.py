@@ -9,8 +9,8 @@ def rgetattr(obj, attr, *args):
     return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 
-def search(iteratable, field, value):
-    """Returns the item in the iterable for which item.field == value"""
+def get_first(iteratable, field, value):
+    """Returns the first item in the iterable for which item.field == value"""
     try:
         return next(item for item in iteratable if rgetattr(item, field) == value)
     except StopIteration:

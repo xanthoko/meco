@@ -6,7 +6,7 @@
 - [x] Connect commlib entities via connector
 - [x] Create a test environment
 - [x] Add dataModel to Ports
-- [ ] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
+- [x] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
 - [ ] Make a test case with a real sensor and arduino
 - [ ] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol

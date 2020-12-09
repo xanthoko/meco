@@ -13,7 +13,7 @@ def get_example_publisher(node_parser):
 
 
 def get_example_subscriber(node_parser):
-    return node_parser.nodes[-1].subscriber.commlib_subscriber
+    return node_parser.nodes[-1].subscribers[0].commlib_subscriber
 
 
 if __name__ == '__main__':
