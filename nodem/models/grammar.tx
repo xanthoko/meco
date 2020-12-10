@@ -12,11 +12,27 @@ Node:
 ;
 
 OutPort:
-    '-' type=ID name=ID (':' object=Object)?
+    Publisher | RPC_Service
+;
+
+Publisher:
+    '- publisher' name=ID (':' object=Object)?
+;
+
+RPC_Service:
+    '- rpc_service' name=ID (':' object=Object)?
 ;
 
 InPort:
-    '-' type=ID name=ID
+    Subscriber | RPC_Client
+;
+
+Subscriber:
+    '- subscriber' name=ID
+;
+
+RPC_Client:
+    '- rpc_client' name=ID
 ;
 
 Object:

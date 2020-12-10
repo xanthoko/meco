@@ -7,6 +7,18 @@ Node thermoSensor{
             Float humidity = '12.2'
 }
 
+Node sonarSensor{
+    outPorts:
+        - publisher ssPub
+}
+
+Node TV{
+    properties:
+        Boolean isOn = 'True'
+    inPorts:
+        - subscriber tvSub
+}
+
 Node ACDevice{
     properties:
         Boolean isOn = 'True'

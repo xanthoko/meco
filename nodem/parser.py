@@ -37,8 +37,10 @@ class NodesHandler:
         model_nodes = self.model.nodes
 
         for model_node in model_nodes:
-            publishers = get_all(model_node.outports, 'type', 'publisher')
-            subscibers = get_all(model_node.inports, 'type', 'subscriber')
+            publishers = get_all(model_node.outports, '__class__.__name__',
+                                 'Publisher')
+            subscibers = get_all(model_node.inports, '__class__.__name__',
+                                 'Subscriber')
 
             node_obj = Node(model_node.name, model_node.properties)
             node_obj.set_publishers(publishers)
