@@ -2,14 +2,17 @@ from utils import typecasted_value
 
 
 class Node:
-    def __init__(self, name, properties, publisher=None, subscriber=None):
+    def __init__(self, name, properties, publishers, subscribers):
         self.name = name
 
         self._properties = []
-        self.set_properties(properties)
-
         self.publishers = []
         self.subscribers = []
+
+        self.set_properties(properties)
+        self.set_publishers(publishers)
+        self.set_subscribers(subscribers)
+
         self.commlib_node = None
 
     def set_properties(self, model_properties):
@@ -36,7 +39,7 @@ class Node:
                 }
             else:
                 payload = {}
-            self.publishers.append(Publisher(self, publisher.name, payload))
+            self.publishers.append(Publisher(self, publisher.topic, payload))
 
     def set_subscribers(self, subscribers):
         """
@@ -44,7 +47,7 @@ class Node:
             subscribers (list of Subscriber Model)
         """
         for subscriber in subscribers:
-            self.subscribers.append(Subscriber(self, subscriber.name))
+            self.subscribers.append(Subscriber(self, subscriber.topic))
 
     @property
     def properties(self):
@@ -58,10 +61,9 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, node, name, payload={}):
+    def __init__(self, node, topic, payload={}):
         self.node = node
-        self.name = name
-        self.topic = f'{self.node.name}.{self.name}.data'
+        self.topic = topic
         self.commlib_publisher = None
         self.payload = payload
 
@@ -71,36 +73,15 @@ class Publisher:
     def publish(self):
         self.commlib_publisher.publish(self.payload)
 
-    def __str__(self):
-        return self.name
-
     def __repr__(self):
         return f'Publisher of: {self.node}'
 
 
 class Subscriber:
-    def __init__(self, node, name):
+    def __init__(self, node, topic):
         self.node = node
-        self.name = name
-        self.topic = f'{self.node.name}.{self.name}.data'
+        self.topic = topic
         self.commlib_subscriber = None
-
-    def __str__(self):
-        return self.name
 
     def __repr__(self):
         return f'Subscriber of: {self.node}'
-
-
-class Connector:
-    def __init__(self, from_port, to_port):
-        """
-        Args:
-            from_port (Model): Publisher or RPC_Service model
-            to_port (Model): Subscriber or RPC_Client model
-        """
-        self.from_port = from_port
-        self.to_port = to_port
-
-    def __repr__(self):
-        return f'{self.from_port} -> {self.to_port}'

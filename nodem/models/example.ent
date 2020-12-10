@@ -2,21 +2,25 @@ Node thermoSensor{
     properties:
         Float temperature = '14.2'
     outPorts:
-        - publisher thermoPub:
-            Float temperature
-            Float humidity = '12.2'
+        - publisher:
+            topic: thermo.th
+            message:
+                Float temperature
+                Float humidity = '12.2'
 }
 
 Node sonarSensor{
     outPorts:
-        - publisher ssPub
+        - publisher:
+            topic: ss.data
 }
 
 Node TV{
     properties:
         Boolean isOn = 'True'
     inPorts:
-        - subscriber tvSub
+        - subscriber:
+            topic: tv.data
 }
 
 Node ACDevice{
@@ -24,10 +28,6 @@ Node ACDevice{
         Boolean isOn = 'True'
         Float temperature
     inPorts:
-        - subscriber acSub
-}
-
-Connector temp{
-    fromPort: thermoPub
-    toPort: acSub
+        - subscriber:
+            topic: thermo.th
 }

@@ -1,6 +1,5 @@
 Entities:
-    (nodes*=Node
-    connectors*=Connector)#
+    nodes*=Node
 ;
 
 Node:
@@ -16,7 +15,9 @@ OutPort:
 ;
 
 Publisher:
-    '- publisher' name=ID (':' object=Object)?
+    '- publisher:'
+        'topic:' topic=FQN
+        ('message:' object=Object)?
 ;
 
 RPC_Service:
@@ -28,7 +29,8 @@ InPort:
 ;
 
 Subscriber:
-    '- subscriber' name=ID
+    '- subscriber:'
+        'topic:' topic=FQN
 ;
 
 RPC_Client:
@@ -47,16 +49,7 @@ DataType:
     'Integer' | 'Float' | 'String' | 'Boolean'
 ;
 
-Connector:
-    'Connector' name=ID '{'
-        (('fromPort:' fromPort=[OutPort])?
-        ('toPort:' toPort=[InPort])?)#
-    '}'
-;
-
-
 FQN: ID+['.'];
-
 
 // Comments
 Comment: CommentLine | CommentBlock ;

@@ -11,44 +11,39 @@
     edge[dir=black,arrowtail=empty]
 
 
-140730886563024[ label="{Entities|}"]
+140367404530848[ label="{Entities|}"]
 
-140730886567040[ label="{Node|name: ID\l}"]
+140367404534864[ label="{Node|name: ID\l}"]
 
-140730886571024[ label="{*OutPort|}"]
+140367404538272[ label="{*OutPort|}"]
 
-140730886574432[ label="{Publisher|name: ID\l}"]
+140367404541680[ label="{Publisher|topic: FQN\l}"]
 
-140730886573488[ label="{RPC_Service|name: ID\l}"]
+140367404545088[ label="{RPC_Service|name: ID\l}"]
 
-140730886577840[ label="{*InPort|}"]
+140367404548496[ label="{*InPort|}"]
 
-140730886581248[ label="{Subscriber|name: ID\l}"]
+140367404547552[ label="{Subscriber|topic: FQN\l}"]
 
-140730886584656[ label="{RPC_Client|name: ID\l}"]
+140367404533920[ label="{RPC_Client|name: ID\l}"]
 
-140730886588064[ label="{Object|}"]
+140367404553792[ label="{Object|}"]
 
-140730886591472[ label="{Property|type: DataType\lname: ID\lvalue: STRING\l}"]
-
-140730886598864[ label="{Connector|name: ID\l}"]
+140367404557200[ label="{Property|type: DataType\lname: ID\lvalue: STRING\l}"]
 
 
 
-140730886563024 -> 140730886567040[arrowtail=diamond, dir=both, headlabel="nodes 0..*"]
-140730886563024 -> 140730886598864[arrowtail=diamond, dir=both, headlabel="connectors 0..*"]
-140730886567040 -> 140730886591472[arrowtail=diamond, dir=both, headlabel="properties 0..*"]
-140730886567040 -> 140730886571024[arrowtail=diamond, dir=both, headlabel="outports 0..*"]
-140730886567040 -> 140730886577840[arrowtail=diamond, dir=both, headlabel="inports 0..*"]
-140730886571024 -> 140730886574432 [dir=back]
-140730886571024 -> 140730886573488 [dir=back]
-140730886574432 -> 140730886588064[arrowtail=diamond, dir=both, headlabel="object "]
-140730886573488 -> 140730886588064[arrowtail=diamond, dir=both, headlabel="object "]
-140730886577840 -> 140730886581248 [dir=back]
-140730886577840 -> 140730886584656 [dir=back]
-140730886588064 -> 140730886591472[arrowtail=diamond, dir=both, headlabel="fields 0..*"]
-140730886598864 -> 140730886571024[headlabel="fromPort "]
-140730886598864 -> 140730886577840[headlabel="toPort "]
+140367404530848 -> 140367404534864[arrowtail=diamond, dir=both, headlabel="nodes 0..*"]
+140367404534864 -> 140367404557200[arrowtail=diamond, dir=both, headlabel="properties 0..*"]
+140367404534864 -> 140367404538272[arrowtail=diamond, dir=both, headlabel="outports 0..*"]
+140367404534864 -> 140367404548496[arrowtail=diamond, dir=both, headlabel="inports 0..*"]
+140367404538272 -> 140367404541680 [dir=back]
+140367404538272 -> 140367404545088 [dir=back]
+140367404541680 -> 140367404553792[arrowtail=diamond, dir=both, headlabel="object "]
+140367404545088 -> 140367404553792[arrowtail=diamond, dir=both, headlabel="object "]
+140367404548496 -> 140367404547552 [dir=back]
+140367404548496 -> 140367404533920 [dir=back]
+140367404553792 -> 140367404557200[arrowtail=diamond, dir=both, headlabel="fields 0..*"]
 match_rules [ shape=plaintext, label=< <table>
 	<tr>
 		<td><b>Comment</b></td><td></td>
