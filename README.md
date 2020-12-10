@@ -7,8 +7,9 @@
 - [x] Create a test environment
 - [x] Add dataModel to Ports
 - [x] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
+- [ ] Introduce topic field in services
+- [ ] Replace objects with idl-objects
 - [ ] LucidChart diagram to clear things out
-- [ ] Make a test case with a real sensor and arduino
 - [ ] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol
 
