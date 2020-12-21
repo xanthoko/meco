@@ -10,7 +10,7 @@
 - [x] Introduce topic field in services
 - [ ] Replace objects with idl-objects
 - [ ] LucidChart diagram to clear things out
-- [ ] Integrate RPC communications
+- [x] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol
 
 
