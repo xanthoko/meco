@@ -34,8 +34,10 @@ def default_on_request(msg):
 
 
 class NodesHandler:
+    """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent'):
         self.nodes = []
+        # service entities lists
         self.publishers = []
         self.subscribers = []
         self.rpc_services = []
@@ -47,12 +49,16 @@ class NodesHandler:
         self.parse_model()
 
     def parse_model(self):
-        self._parse_nodes()
-        self._create_commlib_entities()
+        self._create_node_objects()
+        # NOTE: the alternative for avoiding calling _update_service_entities_lists
+        # is to execute
+        # return [publishers.extend(x.publishers) for x in a.nodes]
+        # every time publishers list was requested. I don't think it would be better
+        self._update_service_entities_lists()
+        self._create_commlib_entities_for_services()
 
-    def _parse_nodes(self):
-        """For every node listed in the model, retrieves its services and creates
-        the corresponding Entity object."""
+    def _create_node_objects(self):
+        """Create a Node object for every node model."""
         model_nodes = self.model.nodes
 
         for model_node in model_nodes:
@@ -67,14 +73,18 @@ class NodesHandler:
 
             node_obj = Node(model_node.name, model_node.properties, publishers,
                             subscribers, rpc_services, rpc_clients)
-
             self.nodes.append(node_obj)
-            self.publishers.extend(node_obj.publishers)
-            self.subscribers.extend(node_obj.subscribers)
-            self.rpc_services.extend(node_obj.rpc_services)
-            self.rpc_clients.extend(node_obj.rpc_clients)
 
-    def _create_commlib_entities(self):
+    def _update_service_entities_lists(self):
+        """Extends the service entities lists with the created service entities of each
+        node object."""
+        for node in self.nodes:
+            self.publishers.extend(node.publishers)
+            self.subscribers.extend(node.subscribers)
+            self.rpc_services.extend(node.rpc_services)
+            self.rpc_clients.extend(node.rpc_clients)
+
+    def _create_commlib_entities_for_services(self):
         self._create_commlib_nodes()
         self._create_commlib_publishers()
         self._create_commlib_subscribers()

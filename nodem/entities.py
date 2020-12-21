@@ -2,6 +2,8 @@ from utils import typecasted_value
 
 
 class Node:
+    """The parent class that contains the service entities i.e. publishers, subscribers
+    rpc_services and rpc_clients along with the given properties for the node."""
     def __init__(self, name, properties, publishers, subscribers, rpc_services,
                  rpc_clients):
         self.name = name
@@ -20,23 +22,28 @@ class Node:
 
         self.commlib_node = None
 
-    def set_properties(self, model_properties):
+    def set_properties(self, property_models):
         """
         Args:
-            properties (list of model properties): Each properties has a name, type
-                and value attribute.
+            property_models (list of textx Property models): Each model has a
+            "name", "type" and "value" attribute.
         """
-        for model_property in model_properties:
-            setattr(self, model_property.name, typecasted_value(model_property))
-            self._properties.append(model_property.name)
+        for property_model in property_models:
+            setattr(self, property_model.name, typecasted_value(property_model))
+            self._properties.append(property_model.name)
 
-    def set_publishers(self, publishers):
-        """
+    def set_publishers(self, publisher_models):
+        """Creates a Publisher object for every model.
+
+        If the "object" attribute is set, the publisher's payload is set to a
+        dictionary that contains the "object's" fields.
+
         Args:
-            publishers (list of Publisher Model)
+            publisher_models (list of text Publisher models): Each model has a
+                "topic" and "object" attribute.
         """
-        for publisher in publishers:
-            data_object = publisher.object
+        for publisher_model in publisher_models:
+            data_object = publisher_model.object  # can be None
             if data_object:
                 payload = {
                     field.name: typecasted_value(field)
@@ -44,27 +51,40 @@ class Node:
                 }
             else:
                 payload = {}
-            self.publishers.append(Publisher(self, publisher.topic, payload))
+            publisher_obj = Publisher(self, publisher_model.topic, payload)
+            self.publishers.append(publisher_obj)
 
-    def set_subscribers(self, subscribers):
-        """
+    def set_subscribers(self, subscriber_models):
+        """ Creates a Subscriber object for every model.
         Args:
-            subscribers (list of Subscriber Model)
+            subscriber_models (list of text Subscriber models): Each model has a
+                "topic" attribute.
         """
-        for subscriber in subscribers:
-            self.subscribers.append(Subscriber(self, subscriber.topic))
+        for subscriber_model in subscriber_models:
+            subscriber_obj = Subscriber(self, subscriber_model.topic)
+            self.subscribers.append(subscriber_obj)
 
-    def set_rpc_services(self, rpc_services):
-        """
+    def set_rpc_services(self, rpc_service_models):
+        """ Creates an RPC_Service object for every model
+
         Args:
-            rpc_services (list of RPC_Services Model)
+            rpc_services (list of text RPC_Service models): Each model has a
+                "name" attribute.
         """
-        for rpc_service in rpc_services:
-            self.rpc_services.append(RPC_Service(self, rpc_service.name))
+        for rpc_service_model in rpc_service_models:
+            rpc_service_obj = RPC_Service(self, rpc_service_model.name)
+            self.rpc_services.append(rpc_service_obj)
 
-    def set_rpc_clients(self, rpc_clients):
-        for rpc_client in rpc_clients:
-            self.rpc_clients.append(RPC_Client(self, rpc_client.name))
+    def set_rpc_clients(self, rpc_client_models):
+        """ Creates an RPC_Client object for every model
+
+        Args:
+            rpc_client_models (list of text RPC_Client models): Each model has a
+                "name" attribute.
+        """
+        for rpc_client_model in rpc_client_models:
+            rpc_client_obj = RPC_Client(self, rpc_client_model.name)
+            self.rpc_clients.append(rpc_client_obj)
 
     @property
     def properties(self):
@@ -88,6 +108,7 @@ class Publisher:
         self.payload = payload
 
     def publish(self):
+        """Publishes the payload through commlib publisher."""
         self.commlib_publisher.publish(self.payload)
 
     def __repr__(self):

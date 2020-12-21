@@ -2,7 +2,7 @@ import functools
 
 
 def rgetattr(obj, attr, *args):
-    """Enhanced getattr to work in this case: rgetattr(obj, 'sub1.sub2')"""
+    """Enhanced getattr to work in the following case: rgetattr(obj, 'sub1.sub2')"""
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
 
@@ -22,10 +22,10 @@ def get_all(iterable, field, value):
 
 
 def typecasted_value(property):
-    """Typecasting property.value to property.type
+    """Typecasting {property.value} to {property.type} type
 
     Args:
-        property (Property Model): Contains default, name and type attributes
+        property (Property Model): Contains "default", "name" and "type" attributes
     """
     type_map = {'Float': float, 'Integer': int, 'Boolean': bool}
     typecast_func = type_map[property.type]
