@@ -9,6 +9,7 @@ Node thermoSensor{
             topic: asd.dasd
             message:
                 Float temperature = '3'
+        - rpc_service thermoRPC
 }
 
 Node sonarSensor{
@@ -32,5 +33,6 @@ Node ACDevice{
     inPorts:
         - subscriber:
             topic: asd.dsa
+        - rpc_client thermoRPC
 }
 

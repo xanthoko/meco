@@ -7,6 +7,7 @@ Node thermoSensor{
             message:
                 Float temperature
                 Float humidity = '12.2'
+        - rpc_service thermoRPC
 }
 
 Node sonarSensor{
@@ -30,4 +31,5 @@ Node ACDevice{
     inPorts:
         - subscriber:
             topic: thermo.th
+        - rpc_client thermoRPC
 }

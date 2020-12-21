@@ -2,16 +2,21 @@ from utils import typecasted_value
 
 
 class Node:
-    def __init__(self, name, properties, publishers, subscribers):
+    def __init__(self, name, properties, publishers, subscribers, rpc_services,
+                 rpc_clients):
         self.name = name
 
         self._properties = []
         self.publishers = []
         self.subscribers = []
+        self.rpc_services = []
+        self.rpc_clients = []
 
         self.set_properties(properties)
         self.set_publishers(publishers)
         self.set_subscribers(subscribers)
+        self.set_rpc_services(rpc_services)
+        self.set_rpc_clients(rpc_clients)
 
         self.commlib_node = None
 
@@ -49,6 +54,18 @@ class Node:
         for subscriber in subscribers:
             self.subscribers.append(Subscriber(self, subscriber.topic))
 
+    def set_rpc_services(self, rpc_services):
+        """
+        Args:
+            rpc_services (list of RPC_Services Model)
+        """
+        for rpc_service in rpc_services:
+            self.rpc_services.append(RPC_Service(self, rpc_service.name))
+
+    def set_rpc_clients(self, rpc_clients):
+        for rpc_client in rpc_clients:
+            self.rpc_clients.append(RPC_Client(self, rpc_client.name))
+
     @property
     def properties(self):
         return {x: getattr(self, x) for x in self._properties}
@@ -85,3 +102,29 @@ class Subscriber:
 
     def __repr__(self):
         return f'Subscriber of: {self.node}'
+
+
+class RPC_Service:
+    def __init__(self, node, name):
+        self.node = node
+        self.name = name
+        self.commlib_rpc_service = None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f'RPC Service of {self.node}'
+
+
+class RPC_Client:
+    def __init__(self, node, name):
+        self.node = node
+        self.name = name
+        self.commlib_rpc_client = None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f'RPC Client of {self.node}'
