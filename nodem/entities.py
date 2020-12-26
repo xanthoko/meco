@@ -46,8 +46,8 @@ class Node:
             data_object = publisher_model.object  # can be None
             if data_object:
                 payload = {
-                    field.name: typecasted_value(field)
-                    for field in data_object.fields
+                    prop.name: typecasted_value(prop)
+                    for prop in data_object.properties
                 }
             else:
                 payload = {}
@@ -109,7 +109,10 @@ class Publisher:
 
     def publish(self):
         """Publishes the payload through commlib publisher."""
-        self.commlib_publisher.publish(self.payload)
+        if self.commlib_publisher:
+            self.commlib_publisher.publish(self.payload)
+        else:
+            print('[ERROR] Commlib publisher not set.')
 
     def __repr__(self):
         return f'Publisher of: {self.node}'

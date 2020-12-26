@@ -1,38 +1,32 @@
+import messages.idl;
+
 Node thermoSensor{
     outPorts:
         - publisher:
-            topic: asd.dsa
-            message:
-                Float temperature = '10'
-                Float humidity
+            topic: thermo.temp
+            message: ThermoSensorMsg
         - publisher:
-            topic: asd.dasd
-            message:
-                Float temperature = '3'
+            topic: thermo.humidity
+            message: ThermoSensorMsg2
         - rpc_service thermoRPC
 }
 
 Node sonarSensor{
     outPorts:
         - publisher:
-            topic: asd.e
+            topic: sonar.data
+            message: SonarSensorMsg
 }
 
 Node TV{
-    properties:
-        Boolean isOn = 'True'
     inPorts:
         - subscriber:
             topic: s.s
 }
 
 Node ACDevice{
-    properties:
-        Boolean isOn = 'True'
-        Float temperature
     inPorts:
         - subscriber:
-            topic: asd.dsa
+            topic: thermo.humidity
         - rpc_client thermoRPC
 }
-

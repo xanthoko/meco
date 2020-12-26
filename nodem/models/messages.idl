@@ -1,0 +1,26 @@
+Package {
+  name: msgs
+  description: "Interface Messages"
+  author: "Konstantinos Xanthopoulos"
+}
+
+Object Header {
+  timestamp: int
+  id: int
+}
+
+PubSubMessage ThermoSensorMsg {
+  temperature: float
+}
+
+PubSubMessage ThermoSensorMsg2 {
+  temperature: float
+  humidity: float '10'
+}
+
+PubSubMessage SonarSensorMsg {
+  range: float
+  hfov: float
+  vfov: float
+}
+

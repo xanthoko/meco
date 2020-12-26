@@ -1,4 +1,7 @@
+reference comm_idl as idl
+
 Entities:
+    imports*=Import
     nodes*=Node
 ;
 
@@ -17,7 +20,7 @@ OutPort:
 Publisher:
     '- publisher:'
         'topic:' topic=FQN
-        ('message:' object=Object)?
+        ('message:' object=[idl.PubSubMessage])?
 ;
 
 RPC_Service:
@@ -38,18 +41,16 @@ RPC_Client:
 ;
 
 Object:
-    fields*=Property
+    fields*=[idl.Property]
 ;
 
 Property:
-    type=[DataType|FQN] name=ID ('=' value=STRING)?
-;
-
-DataType:
-    'Integer' | 'Float' | 'String' | 'Boolean'
+    name=ID ':' type=[idl.DataType|FQN]
 ;
 
 FQN: ID+['.'];
+FQNI: ID+['.']('.*')?;
+Import: 'import' importURI=FQNI ('as' name=ID)? ';';
 
 // Comments
 Comment: CommentLine | CommentBlock ;

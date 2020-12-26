@@ -1,4 +1,14 @@
 import functools
+from textx import metamodel_from_file
+import textx.scoping.providers as scoping_providers
+
+
+def build_model(model_path):
+    mm = metamodel_from_file('models/grammar.tx', global_repository=True)
+    mm.register_scope_providers(
+        {'*.*': scoping_providers.FQNImportURI(importAs=True, )})
+
+    return mm.model_from_file(model_path)
 
 
 def rgetattr(obj, attr, *args):
@@ -21,13 +31,13 @@ def get_all(iterable, field, value):
     return list(filter(lambda x: rgetattr(x, field) == value, iterable))
 
 
-def typecasted_value(property):
-    """Typecasting {property.value} to {property.type} type
+def typecasted_value(prop):
+    """Typecasting {prop.value} to {prop.type} type
 
     Args:
-        property (Property Model): Contains "default", "name" and "type" attributes
+        prop (Property Model): Contains "default", "name" and "type" attributes
     """
-    type_map = {'Float': float, 'Integer': int, 'Boolean': bool}
-    typecast_func = type_map[property.type]
-    if property.value:
-        return typecast_func(property.value)
+    type_map = {'float': float, 'int': int, 'bool': bool}
+    typecast_func = type_map[prop.type.name]
+    if prop.default:
+        return typecast_func(prop.default)

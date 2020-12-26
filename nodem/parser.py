@@ -1,12 +1,11 @@
-from textx import metamodel_from_file
-from traceback_with_variables import activate_by_import
+# from traceback_with_variables import activate_by_import
 
 from commlib.msg import RPCMessage, DataClass
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from entities import Node
-from utils import get_all
+from utils import get_all, build_model
 
 transport = TransportType.AMQP
 conn_params = ConnectionParameters()
@@ -43,9 +42,7 @@ class NodesHandler:
         self.rpc_services = []
         self.rpc_clients = []
 
-        metamodel = metamodel_from_file('models/grammar.tx')
-        self.model = metamodel.model_from_file(model_path)
-
+        self.model = build_model(model_path)
         self.parse_model()
 
     def parse_model(self):
