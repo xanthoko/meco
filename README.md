@@ -9,7 +9,7 @@
 - [x] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
 - [x] Introduce topic field in services
 - [ ] Replace objects with idl-objects
-- [ ] LucidChart diagram to clear things out
+- [ ] Create package
 - [x] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol
 
