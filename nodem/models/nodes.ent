@@ -1,6 +1,7 @@
 import messages.idl;
 
 Node thermoSensor{
+    properties: thermoProperties
     outPorts:
         - publisher:
             topic: thermo.temp

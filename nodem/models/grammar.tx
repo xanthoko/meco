@@ -7,7 +7,7 @@ Entities:
 
 Node:
     'Node' name=ID '{'
-        (('properties:' properties*=Property)?
+        (('properties:' properties=[idl.Object])?
         ('outPorts:' outports*=OutPort)?
         ('inPorts:' inports*=InPort)?)#
     '}'
@@ -44,9 +44,6 @@ Object:
     fields*=[idl.Property]
 ;
 
-Property:
-    name=ID ':' type=[idl.DataType|FQN]
-;
 
 FQN: ID+['.'];
 FQNI: ID+['.']('.*')?;

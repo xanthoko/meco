@@ -9,6 +9,11 @@ Object Header {
   id: int
 }
 
+Object thermoProperties {
+  temperature: float
+  humidity: float
+}
+
 PubSubMessage ThermoSensorMsg {
   temperature: float
 }

@@ -22,15 +22,19 @@ class Node:
 
         self.commlib_node = None
 
-    def set_properties(self, property_models):
+    def set_properties(self, object_model):
         """
         Args:
-            property_models (list of textx Property models): Each model has a
-            "name", "type" and "value" attribute.
+            object_model (textx Object model): Object model that has the properties
+                field.
         """
-        for property_model in property_models:
-            setattr(self, property_model.name, typecasted_value(property_model))
-            self._properties.append(property_model.name)
+        if not object_model:
+            return
+        node_properties = object_model.properties
+        for node_property in node_properties:
+            # node property has 'type', 'default' and 'name' fields
+            setattr(self, node_property.name, typecasted_value(node_property))
+            self._properties.append(node_property.name)
 
     def set_publishers(self, publisher_models):
         """Creates a Publisher object for every model.
