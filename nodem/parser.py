@@ -1,35 +1,14 @@
 # from traceback_with_variables import activate_by_import
 
-from commlib.msg import RPCMessage, DataClass
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from entities import Node
 from utils import get_all, build_model
+from logic import default_on_message, default_on_request, AddTwoIntMessage
 
 transport = TransportType.AMQP
 conn_params = ConnectionParameters()
-
-
-def default_on_message(msg):
-    print(f'Message: {msg}')
-
-
-class AddTwoIntMessage(RPCMessage):
-    @DataClass
-    class Request(RPCMessage.Request):
-        a: int = 0
-        b: int = 0
-
-    @DataClass
-    class Response(RPCMessage.Response):
-        c: int = 0
-
-
-def default_on_request(msg):
-    print(f'Request Message: {msg}')
-    resp = AddTwoIntMessage.Response(c=msg.a + msg.b)
-    return resp
 
 
 class NodesHandler:
