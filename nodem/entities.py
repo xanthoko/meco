@@ -1,4 +1,4 @@
-from utils import typecasted_value
+from nodem.utils import typecasted_value
 
 
 class Node:

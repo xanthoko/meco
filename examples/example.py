@@ -1,11 +1,12 @@
 import sys
 
-from parser import NodesHandler, AddTwoIntMessage
+from nodem.definitions import MODELS_DIR_PATH
+from nodem.parser import NodesHandler, AddTwoIntMessage
 
 
 def get_example_node_parser():
-    model_path = 'models/example.ent'
-    return NodesHandler(model_path)
+    example_model_path = f'{MODELS_DIR_PATH}/example.ent'
+    return NodesHandler(example_model_path)
 
 
 def get_example_publisher(node_parser):
@@ -45,14 +46,14 @@ if __name__ == '__main__':
 
     node_parser = get_example_node_parser()
 
-    if service_arg in ['s', 'sub', 'subscriber']:
-        example_subscriber = get_example_subscriber(node_parser)
-        example_subscriber.run_forever()
-    elif service_arg in ['c', 'client']:
-        example_rpc_client = get_example_rpc_client(node_parser)
-        msg = AddTwoIntMessage.Request(a=1, b=2)
-    elif service_arg in ['p', 'pub', 'publisher']:
-        example_publisher = get_example_publisher(node_parser)
-    elif service_arg in ['sv', 'service']:
-        example_rpc_service = get_example_rpc_service(node_parser)
-        example_rpc_service.run_forever()
+    # if service_arg in ['s', 'sub', 'subscriber']:
+    #     example_subscriber = get_example_subscriber(node_parser)
+    #     example_subscriber.run_forever()
+    # elif service_arg in ['c', 'client']:
+    #     example_rpc_client = get_example_rpc_client(node_parser)
+    #     msg = AddTwoIntMessage.Request(a=1, b=2)
+    # elif service_arg in ['p', 'pub', 'publisher']:
+    #     example_publisher = get_example_publisher(node_parser)
+    # elif service_arg in ['sv', 'service']:
+    #     example_rpc_service = get_example_rpc_service(node_parser)
+    #     example_rpc_service.run_forever()

@@ -2,9 +2,11 @@ import functools
 from textx import metamodel_from_file
 import textx.scoping.providers as scoping_providers
 
+from nodem.definitions import GRAMMAR_PATH
+
 
 def build_model(model_path):
-    mm = metamodel_from_file('models/grammar.tx', global_repository=True)
+    mm = metamodel_from_file(GRAMMAR_PATH, global_repository=True)
     mm.register_scope_providers(
         {'*.*': scoping_providers.FQNImportURI(importAs=True, )})
 
