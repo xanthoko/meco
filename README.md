@@ -14,14 +14,16 @@
 - [ ] Add support for redis and mqtt protocol
 
 
-## Example
+## Examples
 
 The example contains a dummy model of a *thermoSensor* node with a publisher
 and an *ACDevice* with a subscriber that are connected via a connector.
 
-To run the example you have to open a rabbitmq server in localhost by running `rabbitmq-server`.
-Then inside the nodem directory, run `python example.py sub` to fire up the subscriber.
+To run any example you have to open a rabbitmq server in localhost by running `rabbitmq-server` and navigate to the examples directory.
 
-On another terminal, in the same directory run `python -i example.py pub`. This intercative shell will have a publisher called **example_publisher** and you will be able to test their connection by executing `example_publisher.publish()`.
+
+### Pub-Sub Example
+Run `python ps_example.py sub` to fire up the subscriber.
+On another terminal, in the same directory run `python -i ps_example.py pub`. This intercative shell will have a publisher called **example_publisher** and you will be able to test their connection by executing `example_publisher.publish()`.
 
 Now on the first terminal you can see the message sent by the publisher.
