@@ -38,6 +38,6 @@ if __name__ == '__main__':
     if service_arg in ['c', 'client']:
         example_rpc_client = get_example_rpc_client(node_parser)
         msg = AddTwoIntMessage.Request(a=1, b=2)
-    elif service_arg in ['sv', 'service']:
+    elif service_arg in ['s', 'service']:
         example_rpc_service = get_example_rpc_service(node_parser)
         example_rpc_service.run_forever()

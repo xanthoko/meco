@@ -27,3 +27,10 @@ Run `python ps_example.py sub` to fire up the subscriber.
 On another terminal, in the same directory run `python -i ps_example.py pub`. This intercative shell will have a publisher called **example_publisher** and you will be able to test their connection by executing `example_publisher.publish()`.
 
 Now on the first terminal you can see the message sent by the publisher.
+
+
+### RPC Example
+Run `python rpc_example.py service` to fire up the rpc service.
+On another terminal, in the same directory run `python -i ps_example.py client`. This intercative shell will have an rpc client called **example_rpc_client** and message to send. You will be able to test their connection by executing `example_rpc_client.call(msg)`.
+
+Now on the first terminal you can see the message sent by the client.
