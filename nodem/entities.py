@@ -82,15 +82,17 @@ class Node:
         for rpc_service_model in rpc_service_models:
             rpc_service_name = rpc_service_model.name
             rpc_message_name = f'{rpc_service_name}_msg'
+            rpc_method_name = f'{rpc_service_name}_on_request'
 
             response_object = rpc_service_model.object.response
             data, header = response_object.properties
             # add message class to rpc_messages.py
-            add_rpc_message(rpc_message_name, data.type.properties, 'response')
+            add_rpc_message(rpc_message_name, rpc_method_name, data.type.properties,
+                            'response')
             # import message module
             rpc_messages_module = import_module('nodem.rpc_messages')
             message_module = getattr(rpc_messages_module, rpc_message_name)
-            on_request_method = getattr(rpc_messages_module, 'default_on_request')
+            on_request_method = getattr(rpc_messages_module, rpc_method_name)
 
             rpc_service_obj = RPC_Service(self, rpc_service_name, message_module,
                                           on_request_method)

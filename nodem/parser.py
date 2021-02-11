@@ -4,8 +4,8 @@ from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from nodem.entities import Node
+from nodem.logic import default_on_message
 from nodem.utils import get_all, build_model
-from nodem.logic import default_on_message, AddTwoIntMessage
 
 transport = TransportType.AMQP
 conn_params = ConnectionParameters()
