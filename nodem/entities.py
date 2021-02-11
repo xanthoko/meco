@@ -1,3 +1,7 @@
+from typing import Optional
+from importlib import import_module
+
+from nodem.logic import add_rpc_message
 from nodem.utils import typecasted_value
 
 
@@ -69,14 +73,28 @@ class Node:
             self.subscribers.append(subscriber_obj)
 
     def set_rpc_services(self, rpc_service_models):
-        """ Creates an RPC_Service object for every model
+        """Creates an RPC_Service object for every model
 
         Args:
             rpc_services (list of text RPC_Service models): Each model has a
                 "name" attribute.
         """
         for rpc_service_model in rpc_service_models:
-            rpc_service_obj = RPC_Service(self, rpc_service_model.name)
+            rpc_service_name = rpc_service_model.name
+            rpc_message_name = f'{rpc_service_name}_msg'
+
+            response_object = rpc_service_model.object.response
+            data, header = response_object.properties
+            # add message class to rpc_messages.py
+            add_rpc_message(rpc_message_name, data.type.properties, 'response')
+            # import message module
+            rpc_messages_module = import_module('nodem.rpc_messages')
+            message_module = getattr(rpc_messages_module, rpc_message_name)
+            on_request_method = getattr(rpc_messages_module, 'default_on_request')
+
+            rpc_service_obj = RPC_Service(self, rpc_service_name, message_module,
+                                          on_request_method)
+
             self.rpc_services.append(rpc_service_obj)
 
     def set_rpc_clients(self, rpc_client_models):
@@ -87,7 +105,18 @@ class Node:
                 "name" attribute.
         """
         for rpc_client_model in rpc_client_models:
-            rpc_client_obj = RPC_Client(self, rpc_client_model.name)
+            rpc_service_name = rpc_client_model.name
+            rpc_message_name = f'{rpc_service_name}_msg'
+
+            try:
+                rpc_messages_module = import_module('nodem.rpc_messages')
+                message_module = getattr(rpc_messages_module, rpc_message_name)
+            except ModuleNotFoundError:
+                print('Not found')
+                message_module = None
+
+            rpc_client_obj = RPC_Client(self, rpc_client_model.name, message_module)
+
             self.rpc_clients.append(rpc_client_obj)
 
     @property
@@ -102,13 +131,13 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, node, topic, payload={}):
+    def __init__(self, node: Node, topic: str, payload: Optional[dict] = {}):
         self.node = node
         self.topic = topic
         self.commlib_publisher = None
         self.payload = payload
 
-    def update_payload(self, payload):
+    def update_payload(self, payload: dict):
         self.payload = payload
 
     def publish(self):
@@ -123,7 +152,7 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, node, topic):
+    def __init__(self, node: Node, topic: str):
         self.node = node
         self.topic = topic
         self.commlib_subscriber = None
@@ -133,9 +162,11 @@ class Subscriber:
 
 
 class RPC_Service:
-    def __init__(self, node, name):
+    def __init__(self, node: Node, name: str, message_module, on_request):
         self.node = node
         self.name = name
+        self.message = message_module
+        self.on_request = on_request
         self.commlib_rpc_service = None
 
     def __str__(self):
@@ -146,9 +177,10 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self, node, name):
+    def __init__(self, node: Node, name: str, message_module):
         self.node = node
         self.name = name
+        self.message = message_module
         self.commlib_rpc_client = None
 
     def __str__(self):

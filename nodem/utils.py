@@ -39,7 +39,7 @@ def typecasted_value(prop):
     Args:
         prop (Property Model): Contains "default", "name" and "type" attributes
     """
-    type_map = {'float': float, 'int': int, 'bool': bool}
+    type_map = {'float': float, 'int': int, 'bool': bool, 'str': str}
     typecast_func = type_map[prop.type.name]
     if prop.default:
         return typecast_func(prop.default)

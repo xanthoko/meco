@@ -1,7 +1,7 @@
 import sys
 
+from nodem.parser import NodesHandler
 from nodem.definitions import MODELS_DIR_PATH
-from nodem.parser import NodesHandler, AddTwoIntMessage
 
 
 def get_example_node_parser():
@@ -10,11 +10,11 @@ def get_example_node_parser():
 
 
 def get_example_rpc_service(node_parser):
-    return node_parser.nodes[0].rpc_services[0].commlib_rpc_service
+    return node_parser.nodes[0].rpc_services[0]
 
 
 def get_example_rpc_client(node_parser):
-    return node_parser.nodes[-1].rpc_clients[0].commlib_rpc_client
+    return node_parser.nodes[-1].rpc_clients[0]
 
 
 def _is_service_arg_valid(service_arg):
@@ -37,7 +37,9 @@ if __name__ == '__main__':
 
     if service_arg in ['c', 'client']:
         example_rpc_client = get_example_rpc_client(node_parser)
-        msg = AddTwoIntMessage.Request(a=1, b=2)
+        msg = example_rpc_client.message.Request()
+        resp = example_rpc_client.commlib_rpc_client.call(msg)
+        print(f'Response was {resp}')
     elif service_arg in ['s', 'service']:
         example_rpc_service = get_example_rpc_service(node_parser)
-        example_rpc_service.run_forever()
+        example_rpc_service.commlib_rpc_service.run_forever()

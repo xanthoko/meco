@@ -4,6 +4,8 @@ Package {
   author: "Konstantinos Xanthopoulos"
 }
 
+Object EmptyObject { }
+
 Object Header {
   timestamp: int
   id: int
@@ -12,6 +14,13 @@ Object Header {
 Object thermoProperties {
   temperature: float
   humidity: float
+}
+
+Object SonarData {
+  range: float
+  hfov: float
+  vfov: float
+  sensor_id: str
 }
 
 PubSubMessage ThermoSensorMsg {
@@ -27,5 +36,13 @@ PubSubMessage SonarSensorMsg {
   range: float
   hfov: float
   vfov: float
+}
+
+RPCMessage SonarSensorMsgR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: SonarData
+  header: Header
 }
 

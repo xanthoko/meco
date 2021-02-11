@@ -24,7 +24,8 @@ Publisher:
 ;
 
 RPC_Service:
-    '- rpc_service' name=ID (':' object=Object)?
+    '- rpc_service' name=ID ':'
+        'message:' object=[idl.RPCMessage]
 ;
 
 InPort:
