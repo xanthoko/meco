@@ -40,3 +40,4 @@ if __name__ == '__main__':
         example_subscriber.run_forever()
     elif service_arg in ['p', 'pub', 'publisher']:
         example_publisher = get_example_publisher(node_parser)
+        example_publisher.publish()

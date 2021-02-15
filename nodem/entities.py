@@ -79,6 +79,7 @@ class Node:
             rpc_services (list of text RPC_Service models): Each model has a
                 "name" attribute.
         """
+        init = True
         for rpc_service_model in rpc_service_models:
             rpc_service_name = rpc_service_model.name
             rpc_message_name = f'{rpc_service_name}_msg'
@@ -88,7 +89,7 @@ class Node:
             data, header = response_object.properties
             # add message class to rpc_messages.py
             add_rpc_message(rpc_message_name, rpc_method_name, data.type.properties,
-                            'response')
+                            init)
             # import message module
             rpc_messages_module = import_module('nodem.rpc_messages')
             message_module = getattr(rpc_messages_module, rpc_message_name)
@@ -98,6 +99,7 @@ class Node:
                                           on_request_method)
 
             self.rpc_services.append(rpc_service_obj)
+            init = False
 
     def set_rpc_clients(self, rpc_client_models):
         """ Creates an RPC_Client object for every model

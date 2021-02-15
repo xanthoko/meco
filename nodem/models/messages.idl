@@ -17,10 +17,10 @@ Object thermoProperties {
 }
 
 Object SonarData {
-  range: float
+  range: float '23232'
   hfov: float
-  vfov: float
-  sensor_id: str
+  vfov: float '10'
+  sensor_id: str 'sid'
 }
 
 PubSubMessage ThermoSensorMsg {
