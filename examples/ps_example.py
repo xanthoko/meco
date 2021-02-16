@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 
 from nodem.parser import NodesHandler
 from nodem.definitions import MODELS_DIR_PATH
@@ -41,3 +42,4 @@ if __name__ == '__main__':
     elif service_arg in ['p', 'pub', 'publisher']:
         example_publisher = get_example_publisher(node_parser)
         example_publisher.publish()
+        sleep(1)
