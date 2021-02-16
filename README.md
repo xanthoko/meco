@@ -3,13 +3,13 @@
 - [x] Create Basic Grammar
 - [x] Parse Model
 - [x] Create commlib entities
-- [x] Connect commlib entities via connector
-- [x] Create a test environment
 - [x] Add dataModel to Ports
 - [x] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
 - [x] Introduce topic field in services
-- [ ] Replace objects with idl-objects
-- [ ] Create package
+- [ ] Implement comm-idl pubsub_message handling
+- [x] Implement comm-idl rpc_message handling
+- [x] Replace objects with idl-objects
+- [x] Create package
 - [x] Integrate RPC communications
 - [ ] Add support for redis and mqtt protocol
 
@@ -24,13 +24,13 @@ To run any example you have to open a rabbitmq server in localhost by running `r
 
 ### Pub-Sub Example
 Run `python ps_example.py sub` to fire up the subscriber.
-On another terminal, in the same directory run `python -i ps_example.py pub`. This intercative shell will have a publisher called **example_publisher** and you will be able to test their connection by executing `example_publisher.publish()`.
+On another terminal, in the same directory run `python ps_example.py pub`. This command will create a publisher that publishes an example message with the same topic as the subscriber.
 
-Now on the first terminal you can see the message sent by the publisher.
+On the first terminal, there will be the message sent by the publisher.
 
 
 ### RPC Example
 Run `python rpc_example.py service` to fire up the rpc service.
-On another terminal, in the same directory run `python -i ps_example.py client`. This intercative shell will have an rpc client called **example_rpc_client** and message to send. You will be able to test their connection by executing `example_rpc_client.call(msg)`.
+On another terminal, in the same directory run `python rpc_example.py client`. This command will create an rpc client called **example_rpc_client** that sends a message. The message is specifed in the **messages.idl** file.
 
 Now on the first terminal you can see the message sent by the client.
