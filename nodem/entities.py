@@ -1,7 +1,7 @@
-from typing import Optional
 from importlib import import_module
 
-from nodem.logic import add_rpc_message
+from commlib.msg import PubSubMessage
+
 from nodem.utils import typecasted_value
 
 
@@ -50,16 +50,13 @@ class Node:
             publisher_models (list of text Publisher models): Each model has a
                 "topic" and "object" attribute.
         """
+        pubsub_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
-            data_object = publisher_model.object  # can be None
-            if data_object:
-                payload = {
-                    prop.name: typecasted_value(prop)
-                    for prop in data_object.properties
-                }
+            if pub_object := publisher_model.object:
+                pubsub_message = getattr(pubsub_module, pub_object.name)
             else:
-                payload = {}
-            publisher_obj = Publisher(self, publisher_model.topic, payload)
+                pubsub_message = None
+            publisher_obj = Publisher(self, publisher_model.topic, pubsub_message)
             self.publishers.append(publisher_obj)
 
     def set_subscribers(self, subscriber_models):
@@ -79,17 +76,11 @@ class Node:
             rpc_services (list of text RPC_Service models): Each model has a
                 "name" attribute.
         """
-        init = True
         for rpc_service_model in rpc_service_models:
             rpc_service_name = rpc_service_model.name
             rpc_message_name = f'{rpc_service_name}_msg'
             rpc_method_name = f'{rpc_service_name}_on_request'
 
-            response_object = rpc_service_model.object.response
-            data, header = response_object.properties
-            # add message class to rpc_messages.py
-            add_rpc_message(rpc_message_name, rpc_method_name, data.type.properties,
-                            init)
             # import message module
             rpc_messages_module = import_module('nodem.rpc_messages')
             message_module = getattr(rpc_messages_module, rpc_message_name)
@@ -99,7 +90,6 @@ class Node:
                                           on_request_method)
 
             self.rpc_services.append(rpc_service_obj)
-            init = False
 
     def set_rpc_clients(self, rpc_client_models):
         """ Creates an RPC_Client object for every model
@@ -135,19 +125,17 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, node: Node, topic: str, payload: Optional[dict] = {}):
+    def __init__(self, node: Node, topic: str, pubsub_message: PubSubMessage):
         self.node = node
         self.topic = topic
         self.commlib_publisher = None
-        self.payload = payload
-
-    def update_payload(self, payload: dict):
-        self.payload = payload
+        self.message = pubsub_message
 
     def publish(self):
         """Publishes the payload through commlib publisher."""
         if self.commlib_publisher:
-            self.commlib_publisher.publish(self.payload)
+            msg = self.message()
+            self.commlib_publisher.publish(msg)
         else:
             print('[ERROR] Commlib publisher not set.')
 

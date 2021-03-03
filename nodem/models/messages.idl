@@ -23,6 +23,11 @@ Object SonarData {
   sensor_id: str 'sid'
 }
 
+Object ThermoData {
+  temperature: float '12.3'
+  humidity: float
+}
+
 PubSubMessage ThermoSensorMsg {
   temperature: float
 }
@@ -46,3 +51,10 @@ RPCMessage SonarSensorMsgR {
   header: Header
 }
 
+RPCMessage ThermoSensorMsgR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: ThermoData
+  header: Header
+}

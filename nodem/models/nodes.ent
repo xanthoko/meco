@@ -10,7 +10,7 @@ Node thermoSensor{
             topic: thermo.humidity
             message: ThermoSensorMsg2
         - rpc_service thermoRPC:
-            message: SonarSensorMsgR
+            message: ThermoSensorMsgR
 }
 
 Node sonarSensor{
@@ -18,6 +18,8 @@ Node sonarSensor{
         - publisher:
             topic: sonar.data
             message: SonarSensorMsg
+        - rpc_service sonarRPC:
+            message: SonarSensorMsgR
 }
 
 Node TV{

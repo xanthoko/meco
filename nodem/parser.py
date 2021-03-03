@@ -1,11 +1,13 @@
 # from traceback_with_variables import activate_by_import
 
+from comm_idl.generator import GeneratorCommlibPy
 from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from nodem.entities import Node
 from nodem.logic import default_on_message
 from nodem.utils import get_all, build_model
+from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 
 transport = TransportType.AMQP
 conn_params = ConnectionParameters()
@@ -25,15 +27,30 @@ class NodesHandler:
         self.parse_model()
 
     def parse_model(self):
-        self._create_node_objects()
+        self.create_message_modules()
+        self.create_node_objects()
         # NOTE: the alternative for avoiding calling _update_service_entities_lists
         # is to execute
         # return [publishers.extend(x.publishers) for x in a.nodes]
         # every time publishers list was requested. I don't think it would be better
-        self._update_service_entities_lists()
-        self._create_commlib_entities_for_services()
+        self.update_service_entities_lists()
+        self.create_commlib_entities_for_services()
 
-    def _create_node_objects(self):
+    def create_message_modules(self):
+        generator = GeneratorCommlibPy()
+        generator.generate(MESSAGES_MODEL_PATH, out_dir=ROOT_PATH)
+        # fix import issues
+        self._replace_object_imports(MESSAGES_DIR_PATH + '/pubsub.py')
+        self._replace_object_imports(MESSAGES_DIR_PATH + '/rpc.py')
+
+    def _replace_object_imports(self, path: str):
+        with open(path, 'r+') as f:
+            text = f.read()
+            text = text.replace(' .object', ' nodem.msgs.object')
+            f.seek(0)
+            f.write(text)
+
+    def create_node_objects(self):
         """Create a Node object for every node model."""
         model_nodes = self.model.nodes
 
@@ -51,7 +68,7 @@ class NodesHandler:
                             subscribers, rpc_services, rpc_clients)
             self.nodes.append(node_obj)
 
-    def _update_service_entities_lists(self):
+    def update_service_entities_lists(self):
         """Extends the service entities lists with the created service entities of each
         node object."""
         for node in self.nodes:
@@ -60,7 +77,7 @@ class NodesHandler:
             self.rpc_services.extend(node.rpc_services)
             self.rpc_clients.extend(node.rpc_clients)
 
-    def _create_commlib_entities_for_services(self):
+    def create_commlib_entities_for_services(self):
         self._create_commlib_nodes()
         self._create_commlib_publishers()
         self._create_commlib_subscribers()
@@ -78,7 +95,7 @@ class NodesHandler:
     def _create_commlib_publishers(self):
         for publisher in self.publishers:
             commlib_publisher = publisher.node.commlib_node.create_publisher(
-                topic=publisher.topic)
+                topic=publisher.topic, msg_type=publisher.message)
             publisher.commlib_publisher = commlib_publisher
 
     def _create_commlib_subscribers(self):
