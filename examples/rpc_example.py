@@ -37,8 +37,9 @@ if __name__ == '__main__':
 
     if service_arg in ['c', 'client']:
         example_rpc_client = get_example_rpc_client(node_parser)
-        msg = example_rpc_client.message.Request()
-        resp = example_rpc_client.commlib_rpc_client.call(msg)
+        msg = example_rpc_client.message_module()
+        request = msg.Request()
+        resp = example_rpc_client.commlib_rpc_client.call(request)
         print(f'Response was {resp}')
     elif service_arg in ['s', 'service']:
         example_rpc_service = get_example_rpc_service(node_parser)

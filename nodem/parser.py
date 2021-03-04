@@ -5,8 +5,8 @@ from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
 
 from nodem.entities import Node
-from nodem.logic import default_on_message
 from nodem.utils import get_all, build_model
+from nodem.logic import default_on_message, default_on_request
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 
 transport = TransportType.AMQP
@@ -95,7 +95,7 @@ class NodesHandler:
     def _create_commlib_publishers(self):
         for publisher in self.publishers:
             commlib_publisher = publisher.node.commlib_node.create_publisher(
-                topic=publisher.topic, msg_type=publisher.message)
+                topic=publisher.topic, msg_type=publisher.message_module)
             publisher.commlib_publisher = commlib_publisher
 
     def _create_commlib_subscribers(self):
@@ -108,14 +108,14 @@ class NodesHandler:
         for rpc_service in self.rpc_services:
             commlib_rpc_service = rpc_service.node.commlib_node.create_rpc(
                 rpc_name=rpc_service.name,
-                msg_type=rpc_service.message,
-                on_request=rpc_service.on_request)
+                msg_type=rpc_service.message_module,
+                on_request=default_on_request)
             rpc_service.commlib_rpc_service = commlib_rpc_service
 
     def _create_commlib_rpc_clients(self):
         for rpc_client in self.rpc_clients:
             commlib_rpc_client = rpc_client.node.commlib_node.create_rpc_client(
-                rpc_name=rpc_client.name, msg_type=rpc_client.message)
+                rpc_name=rpc_client.name, msg_type=rpc_client.message_module)
             rpc_client.commlib_rpc_client = commlib_rpc_client
 
 
