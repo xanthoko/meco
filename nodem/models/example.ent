@@ -26,5 +26,6 @@ Node ACDevice{
     inPorts:
         - subscriber:
             topic: thermo.humidity
-        - rpc_client thermoRPC
+        - rpc_client thermoRPC:
+            message: SonarSensorMsgR
 }

@@ -38,7 +38,8 @@ Subscriber:
 ;
 
 RPC_Client:
-    '- rpc_client' name=ID
+    '- rpc_client' name=ID ':'
+        'message:' object=[idl.RPCMessage]
 ;
 
 Object:
