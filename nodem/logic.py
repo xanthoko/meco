@@ -14,7 +14,7 @@ def default_on_request(msg):
     return msg
 
 
-def generate_on_request_methods_file(message_names: List[str]):
+def generate_on_request_methods_file(message_names: List[str]) -> dict:
     file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
     env = Environment(loader=file_loader)
 

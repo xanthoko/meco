@@ -43,8 +43,8 @@ class Node:
     def set_publishers(self, publisher_models):
         """Creates a Publisher object for every model.
 
-        If the "object" attribute is set, the publisher's payload is set to a
-        dictionary that contains the "object's" fields.
+        If the "object" attribute is set, finds the PubSubMessage class to pass it
+        to the Publisher object.
 
         Args:
             publisher_models (list of text Publisher models): Each model has a
@@ -70,7 +70,10 @@ class Node:
             self.subscribers.append(subscriber_obj)
 
     def set_rpc_services(self, rpc_service_models):
-        """Creates an RPC_Service object for every model
+        """Creates an RPC_Service object for every model.
+
+        The RPCMessage class is imported from the message module and passed to the
+        RPC_Service class.
 
         Args:
             rpc_services (list of text RPC_Service models): Each model has a
@@ -86,7 +89,10 @@ class Node:
             self.rpc_services.append(rpc_service_obj)
 
     def set_rpc_clients(self, rpc_client_models):
-        """ Creates an RPC_Client object for every model
+        """Creates an RPC_Client object for every model.
+
+        The RPCMessage class is imported from the message module and passed to the
+        RPC_Service class.
 
         Args:
             rpc_client_models (list of text RPC_Client models): Each model has a
@@ -120,7 +126,6 @@ class Publisher:
         self.message_module = message_module
 
     def publish(self):
-        """Publishes the payload through commlib publisher."""
         if self.commlib_publisher:
             msg = self.message_module()
             self.commlib_publisher.publish(msg)

@@ -53,7 +53,7 @@ class NodesHandler:
             f.write(text)
 
     def create_node_objects(self):
-        """Create a Node object for every node model."""
+        """Creates a Node object for every node in the model."""
         model_nodes = self.model.nodes
 
         for model_node in model_nodes:
@@ -80,6 +80,8 @@ class NodesHandler:
             self.rpc_clients.extend(node.rpc_clients)
 
     def generate_on_request_methods(self):
+        """Creates the methods.py file that contains the on_request methods for the
+        RPCMessage classes."""
         rpc_message_names = [x.message_module.__name__ for x in self.rpc_services]
         methods_dict = generate_on_request_methods_file(rpc_message_names)
 

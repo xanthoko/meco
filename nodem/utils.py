@@ -1,11 +1,14 @@
 import functools
+from typing import List
+
+import textx
 from textx import metamodel_from_file
 import textx.scoping.providers as scoping_providers
 
 from nodem.definitions import GRAMMAR_PATH
 
 
-def build_model(model_path):
+def build_model(model_path: str) -> textx:
     mm = metamodel_from_file(GRAMMAR_PATH, global_repository=True)
     mm.register_scope_providers(
         {'*.*': scoping_providers.FQNImportURI(importAs=True, )})
@@ -21,7 +24,7 @@ def rgetattr(obj, attr, *args):
     return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 
-def get_first(iteratable, field, value):
+def get_first(iteratable: List, field: str, value):
     """Returns the first item in the iterable for which item.field == value"""
     try:
         return next(item for item in iteratable if rgetattr(item, field) == value)
@@ -45,5 +48,5 @@ def typecasted_value(prop):
         return typecast_func(prop.default)
 
 
-def _to_str(value):
+def _to_str(value) -> str:
     return f'"{value}"'
