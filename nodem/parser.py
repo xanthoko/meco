@@ -6,7 +6,8 @@ from commlib.node import TransportType, Node as CommNode
 
 from nodem.entities import Node
 from nodem.utils import get_all, build_model
-from nodem.logic import default_on_message, default_on_request
+from nodem.logic import (default_on_message, default_on_request,
+                         generate_on_request_methods_file)
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 
 transport = TransportType.AMQP
@@ -34,6 +35,7 @@ class NodesHandler:
         # return [publishers.extend(x.publishers) for x in a.nodes]
         # every time publishers list was requested. I don't think it would be better
         self.update_service_entities_lists()
+        self.generate_on_request_methods()
         self.create_commlib_entities_for_services()
 
     def create_message_modules(self):
@@ -77,6 +79,16 @@ class NodesHandler:
             self.rpc_services.extend(node.rpc_services)
             self.rpc_clients.extend(node.rpc_clients)
 
+    def generate_on_request_methods(self):
+        rpc_message_names = [x.message_module.__name__ for x in self.rpc_services]
+        methods_dict = generate_on_request_methods_file(rpc_message_names)
+
+        for rpc_service in self.rpc_services:
+            rpc_service_name = rpc_service.message_module.__name__
+            on_request_method = methods_dict.get(rpc_service_name,
+                                                 default_on_request)
+            rpc_service.on_request = on_request_method
+
     def create_commlib_entities_for_services(self):
         self._create_commlib_nodes()
         self._create_commlib_publishers()
@@ -109,7 +121,7 @@ class NodesHandler:
             commlib_rpc_service = rpc_service.node.commlib_node.create_rpc(
                 rpc_name=rpc_service.name,
                 msg_type=rpc_service.message_module,
-                on_request=default_on_request)
+                on_request=rpc_service.on_request)
             rpc_service.commlib_rpc_service = commlib_rpc_service
 
     def _create_commlib_rpc_clients(self):

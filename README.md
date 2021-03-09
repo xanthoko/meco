@@ -11,7 +11,7 @@
 - [x] Replace objects with idl-objects
 - [x] Create package
 - [x] Integrate RPC communications
-- [ ] Override commlib generator for on_request methods
+- [x] Override commlib generator for on_request methods
 - [ ] Integrate broker-dsl
 - [ ] Add support for redis and mqtt protocol
 

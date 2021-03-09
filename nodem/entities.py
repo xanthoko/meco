@@ -146,6 +146,7 @@ class RPC_Service:
         self.node = node
         self.name = name
         self.message_module = message_module
+        self.on_request = None
         self.commlib_rpc_service = None
 
     def __str__(self):
