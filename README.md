@@ -6,11 +6,13 @@
 - [x] Add dataModel to Ports
 - [x] Allow more than one service instace per service type in nodes (e.g. 2 publishers in a node)
 - [x] Introduce topic field in services
-- [ ] Implement comm-idl pubsub_message handling
+- [x] Implement comm-idl pubsub_message handling
 - [x] Implement comm-idl rpc_message handling
 - [x] Replace objects with idl-objects
 - [x] Create package
 - [x] Integrate RPC communications
+- [ ] Override commlib generator for on_request methods
+- [ ] Integrate broker-dsl
 - [ ] Add support for redis and mqtt protocol
 
 
