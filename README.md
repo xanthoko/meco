@@ -12,7 +12,7 @@
 - [x] Create package
 - [x] Integrate RPC communications
 - [x] Override commlib generator for on_request methods
-- [ ] Integrate broker-dsl
+- [x] Integrate broker-dsl
 - [ ] Add support for redis and mqtt protocol
 
 
