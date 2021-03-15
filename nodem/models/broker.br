@@ -9,3 +9,9 @@ RedisBroker MyRedis -> {
   host: "localhost";
   port: 6379;
 }
+
+EMQXBroker MyEmqx -> {
+  host: "localhost";
+  port: 1883;
+  users: [('bot', 'b0t'), ('klpanagi', 'klpanagi')];
+}
