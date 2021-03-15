@@ -13,15 +13,24 @@
 - [x] Integrate RPC communications
 - [x] Override commlib generator for on_request methods
 - [x] Integrate broker-dsl
-- [ ] Add support for redis and mqtt protocol
+- [x] Add support for redis and mqtt protocol
 
 
 ## Examples
 
-The example contains a dummy model of a *thermoSensor* node with a publisher
-and an *ACDevice* with a subscriber that are connected via a connector.
+The example model consists of 4 Nodes, each representing a part of a smart home system. The nodes have outports and inports that connect them with each other. To run the example open two terminals in the *examples* directory.
 
-To run any example you have to open a rabbitmq server in localhost by running `rabbitmq-server` and navigate to the examples directory.
+
+### Starting the broker
+Nodem supports 3 broker communication protocols.
+* AMQP
+* MQTT
+* Redis
+
+You can declare the connection parameters of the broker of your choise in *broker.dsl*. To start them in localhost you can use:
+* rabbitmq-server
+* docker run -d --name emqx -p 1883:1883 -p 8083:8083 -p 8883:8883 -p 8084:8084 -p 18083:18083 emqx/emqx:4.2.8
+* redis-server
 
 
 ### Pub-Sub Example
