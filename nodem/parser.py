@@ -43,26 +43,18 @@ class NodesHandler:
         broker_model = self.model.broker.broker
         broker_type = broker_model.__class__.__name__
 
-        # broker_type_map = {
-        #     'RedisBroker': [TransportType.REDIS, redisParams],
-        #     'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams],
-        #     'RabbitBroker': [TransportType.AMQP, amqpParams],
-        #     'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams],
-        #     'EMQXBroker': [TransportType.MQTT, mqttParams]
-        # }
+        broker_type_map = {
+            'RedisBroker': [TransportType.REDIS, redisParams],
+            'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams],
+            'RabbitBroker': [TransportType.AMQP, amqpParams],
+            'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams],
+            'EMQXBroker': [TransportType.MQTT, mqttParams]
+        }
 
-        if broker_type in ['AMQPBrokerGeneric', 'RabbitBroker']:
-            transport_type = TransportType.AMQP
-            host = broker_model.host
-            port = broker_model.port
-            vhost = broker_model.vhosts[0]
-            connection_params = amqpParams(host, port, vhost)
-        else:
-            transport_type = TransportType.MQTT
-            connection_params = mqttParams
-
-        # transport_type, connection_param_class = broker_type_map[broker_type]
-        # connection_params = connection_param_class()
+        transport_type, connection_param_class = broker_type_map[broker_type]
+        host = broker_model.host
+        port = broker_model.port
+        connection_params = connection_param_class(host, port)
 
         broker = Broker(connection_params, transport_type)
         self.broker = broker

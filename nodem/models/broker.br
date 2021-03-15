@@ -4,3 +4,8 @@ RabbitBroker MyRabbit -> {
   vhosts: ['/', 'klpanagi'];
   users: [('bot', 'b0t'), ('klpanagi', 'klpanagi')];
 }
+
+RedisBroker MyRedis -> {
+  host: "localhost";
+  port: 6379;
+}

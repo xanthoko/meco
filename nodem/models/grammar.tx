@@ -8,7 +8,7 @@ Entities:
 ;
 
 Broker:
-    'Broker: ' broker=[bdsl.RabbitBroker]
+    'Broker: ' broker=[bdsl.Broker]
 ;
 
 Node:
