@@ -1,8 +1,14 @@
 reference comm_idl as idl
+reference broker_dsl as bdsl
 
 Entities:
     imports*=Import
+    broker=Broker
     nodes*=Node
+;
+
+Broker:
+    'Broker: ' broker=[bdsl.RabbitBroker]
 ;
 
 Node:

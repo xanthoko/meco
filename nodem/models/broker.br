@@ -1,0 +1,6 @@
+RabbitBroker MyRabbit -> {
+  host: "127.0.0.1";
+  amqp_port: 5672;
+  vhosts: ['/', 'klpanagi'];
+  users: [('bot', 'b0t'), ('klpanagi', 'klpanagi')];
+}

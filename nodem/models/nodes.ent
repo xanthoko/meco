@@ -1,4 +1,7 @@
 import messages.idl;
+import broker.br;
+
+Broker: MyRabbit
 
 Node thermoSensor{
     properties: thermoProperties

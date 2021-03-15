@@ -1,22 +1,22 @@
 # from traceback_with_variables import activate_by_import
 
 from comm_idl.generator import GeneratorCommlibPy
-from commlib.transports.amqp import ConnectionParameters
 from commlib.node import TransportType, Node as CommNode
+from commlib.transports.amqp import ConnectionParameters as amqpParams
+from commlib.transports.mqtt import ConnectionParameters as mqttParams
+from commlib.transports.redis import ConnectionParameters as redisParams
 
-from nodem.entities import Node
+from nodem.entities import Node, Broker
 from nodem.utils import get_all, build_model
 from nodem.logic import (default_on_message, default_on_request,
                          generate_on_request_methods_file)
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 
-transport = TransportType.AMQP
-conn_params = ConnectionParameters()
-
 
 class NodesHandler:
     """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent'):
+        self.broker = None
         self.nodes = []
         # service entities lists
         self.publishers = []
@@ -28,6 +28,7 @@ class NodesHandler:
         self.parse_model()
 
     def parse_model(self):
+        self.set_broker_connection()
         self.create_message_modules()
         self.create_node_objects()
         # NOTE: the alternative for avoiding calling _update_service_entities_lists
@@ -37,6 +38,34 @@ class NodesHandler:
         self.update_service_entities_lists()
         self.generate_on_request_methods()
         self.create_commlib_entities_for_services()
+
+    def set_broker_connection(self):
+        broker_model = self.model.broker.broker
+        broker_type = broker_model.__class__.__name__
+
+        # broker_type_map = {
+        #     'RedisBroker': [TransportType.REDIS, redisParams],
+        #     'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams],
+        #     'RabbitBroker': [TransportType.AMQP, amqpParams],
+        #     'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams],
+        #     'EMQXBroker': [TransportType.MQTT, mqttParams]
+        # }
+
+        if broker_type in ['AMQPBrokerGeneric', 'RabbitBroker']:
+            transport_type = TransportType.AMQP
+            host = broker_model.host
+            port = broker_model.port
+            vhost = broker_model.vhosts[0]
+            connection_params = amqpParams(host, port, vhost)
+        else:
+            transport_type = TransportType.MQTT
+            connection_params = mqttParams
+
+        # transport_type, connection_param_class = broker_type_map[broker_type]
+        # connection_params = connection_param_class()
+
+        broker = Broker(connection_params, transport_type)
+        self.broker = broker
 
     def create_message_modules(self):
         generator = GeneratorCommlibPy()
@@ -100,10 +129,11 @@ class NodesHandler:
 
     def _create_commlib_nodes(self):
         for node in self.nodes:
-            commlib_node = CommNode(node_name=node.name,
-                                    transport_type=transport,
-                                    transport_connection_params=conn_params,
-                                    debug=True)
+            commlib_node = CommNode(
+                node_name=node.name,
+                transport_type=self.broker.transport_type,
+                transport_connection_params=self.broker.connection_params,
+                debug=True)
             node.commlib_node = commlib_node
 
     def _create_commlib_publishers(self):

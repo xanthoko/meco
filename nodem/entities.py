@@ -1,5 +1,6 @@
 from importlib import import_module
 
+from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
 
 from nodem.utils import typecasted_value
@@ -173,3 +174,10 @@ class RPC_Client:
 
     def __repr__(self):
         return f'RPC Client of {self.node}'
+
+
+class Broker:
+    def __init__(self, connection_params: dict, transport_type: TransportType):
+        self.connection_params = connection_params
+        self.transport_type = transport_type
+        self.commlib_broker = None
