@@ -2,9 +2,12 @@
 
 from comm_idl.generator import GeneratorCommlibPy
 from commlib.node import TransportType, Node as CommNode
-from commlib.transports.amqp import ConnectionParameters as amqpParams
-from commlib.transports.mqtt import ConnectionParameters as mqttParams
-from commlib.transports.redis import ConnectionParameters as redisParams
+from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
+                                     as amqpCreds)
+from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credentials
+                                     as mqttCreds)
+from commlib.transports.redis import (ConnectionParameters as redisParams,
+                                      Credentials as redisCreds)
 
 from nodem.entities import Node, Broker
 from nodem.utils import get_all, build_model
@@ -44,17 +47,25 @@ class NodesHandler:
         broker_type = broker_model.__class__.__name__
 
         broker_type_map = {
-            'RedisBroker': [TransportType.REDIS, redisParams],
-            'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams],
-            'RabbitBroker': [TransportType.AMQP, amqpParams],
-            'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams],
-            'EMQXBroker': [TransportType.MQTT, mqttParams]
+            'RedisBroker': [TransportType.REDIS, redisParams, redisCreds],
+            'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams, amqpCreds],
+            'RabbitBroker': [TransportType.AMQP, amqpParams, amqpCreds],
+            'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams, mqttCreds],
+            'EMQXBroker': [TransportType.MQTT, mqttParams, mqttCreds]
         }
 
-        transport_type, connection_param_class = broker_type_map[broker_type]
+        transport_type, connection_param_class, creds_class = broker_type_map[
+            broker_type]
         host = broker_model.host
         port = broker_model.port
-        connection_params = connection_param_class(host, port)
+        # check if there are any credentials
+        if broker_model.users:
+            creds_model = broker_model.users[0]  # get the first pair of credentials
+            creds = creds_class(username=creds_model.username,
+                                password=creds_model.password)
+        else:
+            creds = None
+        connection_params = connection_param_class(host, port, creds=creds)
 
         broker = Broker(connection_params, transport_type)
         self.broker = broker
