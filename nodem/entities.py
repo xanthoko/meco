@@ -6,12 +6,24 @@ from commlib.msg import PubSubMessage, RPCMessage
 from nodem.utils import typecasted_value
 
 
+class Broker:
+    def __init__(self, name: str, connection_params: dict,
+                 transport_type: TransportType):
+        self.name = name
+        self.connection_params = connection_params
+        self.transport_type = transport_type
+        self.commlib_broker = None
+
+    def __repr__(self):
+        return self.name
+
+
 class Node:
     """The parent class that contains the service entities i.e. publishers, subscribers
     rpc_services and rpc_clients along with the given properties for the node."""
-    def __init__(self, name, properties, publishers, subscribers, rpc_services,
-                 rpc_clients):
+    def __init__(self, name, properties, broker: Broker):
         self.name = name
+        self.broker = broker
 
         self._properties = []
         self.publishers = []
@@ -20,10 +32,6 @@ class Node:
         self.rpc_clients = []
 
         self.set_properties(properties)
-        self.set_publishers(publishers)
-        self.set_subscribers(subscribers)
-        self.set_rpc_services(rpc_services)
-        self.set_rpc_clients(rpc_clients)
 
         self.commlib_node = None
 
@@ -40,73 +48,6 @@ class Node:
             # node property has 'type', 'default' and 'name' fields
             setattr(self, node_property.name, typecasted_value(node_property))
             self._properties.append(node_property.name)
-
-    def set_publishers(self, publisher_models):
-        """Creates a Publisher object for every model.
-
-        If the "object" attribute is set, finds the PubSubMessage class to pass it
-        to the Publisher object.
-
-        Args:
-            publisher_models (list of text Publisher models): Each model has a
-                "topic" and "object" attribute.
-        """
-        pubsub_msg_module = import_module('nodem.msgs.pubsub')
-        for publisher_model in publisher_models:
-            if pub_object := publisher_model.object:
-                pubsub_message = getattr(pubsub_msg_module, pub_object.name)
-            else:
-                pubsub_message = None
-            publisher_obj = Publisher(self, publisher_model.topic, pubsub_message)
-            self.publishers.append(publisher_obj)
-
-    def set_subscribers(self, subscriber_models):
-        """ Creates a Subscriber object for every model.
-        Args:
-            subscriber_models (list of text Subscriber models): Each model has a
-                "topic" attribute.
-        """
-        for subscriber_model in subscriber_models:
-            subscriber_obj = Subscriber(self, subscriber_model.topic)
-            self.subscribers.append(subscriber_obj)
-
-    def set_rpc_services(self, rpc_service_models):
-        """Creates an RPC_Service object for every model.
-
-        The RPCMessage class is imported from the message module and passed to the
-        RPC_Service class.
-
-        Args:
-            rpc_services (list of text RPC_Service models): Each model has a
-                "name" attribute.
-        """
-        rpc_msg_module = import_module('nodem.msgs.rpc')
-        for rpc_service_model in rpc_service_models:
-            message_name = rpc_service_model.object.name
-            rpc_message = getattr(rpc_msg_module, message_name)
-
-            rpc_service_obj = RPC_Service(self, rpc_service_model.name, rpc_message)
-
-            self.rpc_services.append(rpc_service_obj)
-
-    def set_rpc_clients(self, rpc_client_models):
-        """Creates an RPC_Client object for every model.
-
-        The RPCMessage class is imported from the message module and passed to the
-        RPC_Service class.
-
-        Args:
-            rpc_client_models (list of text RPC_Client models): Each model has a
-                "name" attribute.
-        """
-        rpc_msg_module = import_module('nodem.msgs.rpc')
-        for rpc_client_model in rpc_client_models:
-            message_name = rpc_client_model.object.name
-            message_module = getattr(rpc_msg_module, message_name)
-
-            rpc_client_obj = RPC_Client(self, rpc_client_model.name, message_module)
-
-            self.rpc_clients.append(rpc_client_obj)
 
     @property
     def properties(self):
@@ -174,10 +115,3 @@ class RPC_Client:
 
     def __repr__(self):
         return f'RPC Client of {self.node}'
-
-
-class Broker:
-    def __init__(self, connection_params: dict, transport_type: TransportType):
-        self.connection_params = connection_params
-        self.transport_type = transport_type
-        self.commlib_broker = None

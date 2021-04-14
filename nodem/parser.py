@@ -1,4 +1,4 @@
-# from traceback_with_variables import activate_by_import
+from importlib import import_module
 
 from comm_idl.generator import GeneratorCommlibPy
 from commlib.node import TransportType, Node as CommNode
@@ -9,17 +9,18 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.entities import Node, Broker
-from nodem.utils import get_all, build_model
+from nodem.utils import get_all, build_model, get_first
 from nodem.logic import (default_on_message, default_on_request,
                          generate_on_request_methods_file)
+from nodem.entities import (Node, Broker, Publisher, Subscriber, RPC_Service,
+                            RPC_Client)
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 
 
 class NodesHandler:
     """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent'):
-        self.broker = None
+        self.brokers = []
         self.nodes = []
         # service entities lists
         self.publishers = []
@@ -31,21 +32,13 @@ class NodesHandler:
         self.parse_model()
 
     def parse_model(self):
-        self.set_broker_connection()
+        self.set_broker_connections()
         self.create_message_modules()
         self.create_node_objects()
-        # NOTE: the alternative for avoiding calling _update_service_entities_lists
-        # is to execute
-        # return [publishers.extend(x.publishers) for x in a.nodes]
-        # every time publishers list was requested. I don't think it would be better
-        self.update_service_entities_lists()
         self.generate_on_request_methods()
         self.create_commlib_entities_for_services()
 
-    def set_broker_connection(self):
-        broker_model = self.model.broker.broker
-        broker_type = broker_model.__class__.__name__
-
+    def set_broker_connections(self):
         broker_type_map = {
             'RedisBroker': [TransportType.REDIS, redisParams, redisCreds],
             'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams, amqpCreds],
@@ -54,21 +47,27 @@ class NodesHandler:
             'EMQXBroker': [TransportType.MQTT, mqttParams, mqttCreds]
         }
 
-        transport_type, connection_param_class, creds_class = broker_type_map[
-            broker_type]
-        host = broker_model.host
-        port = broker_model.port
-        # check if there are any credentials
-        if broker_model.users:
-            creds_model = broker_model.users[0]  # get the first pair of credentials
-            creds = creds_class(username=creds_model.username,
-                                password=creds_model.password)
-        else:
-            creds = None
-        connection_params = connection_param_class(host, port, creds=creds)
+        broker_models = self.model.broker
+        for broker_model in broker_models:
+            broker_model = broker_model.broker
+            broker_type = broker_model.__class__.__name__
 
-        broker = Broker(connection_params, transport_type)
-        self.broker = broker
+            transport_type, connection_param_class, creds_class = broker_type_map[
+                broker_type]
+            host = broker_model.host
+            port = broker_model.port
+            # check if there are any credentials
+            if broker_model.users:
+                creds_model = broker_model.users[
+                    0]  # get the first pair of credentials
+                creds = creds_class(username=creds_model.username,
+                                    password=creds_model.password)
+            else:
+                creds = None
+            connection_params = connection_param_class(host, port, creds=creds)
+
+            broker = Broker(broker_model.name, connection_params, transport_type)
+            self.brokers.append(broker)
 
     def create_message_modules(self):
         generator = GeneratorCommlibPy()
@@ -97,19 +96,51 @@ class NodesHandler:
                                    'RPC_Service')
             rpc_clients = get_all(model_node.inports, '__class__.__name__',
                                   'RPC_Client')
+            broker = get_first(self.brokers, 'name', model_node.broker.name)
+            node = Node(model_node.name, model_node.properties, broker)
 
-            node_obj = Node(model_node.name, model_node.properties, publishers,
-                            subscribers, rpc_services, rpc_clients)
-            self.nodes.append(node_obj)
+            self._create_publishers_for_node(publishers, node)
+            self._create_subscribers_for_node(subscribers, node)
+            self._create_rpc_services_for_node(rpc_services, node)
+            self._create_rpc_clients_for_node(rpc_clients, node)
 
-    def update_service_entities_lists(self):
-        """Extends the service entities lists with the created service entities of each
-        node object."""
-        for node in self.nodes:
-            self.publishers.extend(node.publishers)
-            self.subscribers.extend(node.subscribers)
-            self.rpc_services.extend(node.rpc_services)
-            self.rpc_clients.extend(node.rpc_clients)
+            self.nodes.append(node)
+
+    def _create_publishers_for_node(self, publisher_models, node: Node):
+        pubsub_msg_module = import_module('nodem.msgs.pubsub')
+        for publisher_model in publisher_models:
+            pubsub_message = getattr(pubsub_msg_module, publisher_model.object.name)
+            publisher = Publisher(node, publisher_model.topic, pubsub_message)
+
+            node.publishers.append(publisher)
+            self.publishers.append(publisher)
+
+    def _create_subscribers_for_node(self, subscriber_models, node: Node):
+        for subscriber_model in subscriber_models:
+            subscriber = Subscriber(node, subscriber_model.topic)
+
+            node.subscribers.append(subscriber)
+            self.subscribers.append(subscriber)
+
+    def _create_rpc_services_for_node(self, rpc_service_models, node: Node):
+        rpc_msg_module = import_module('nodem.msgs.rpc')
+        for rpc_service_model in rpc_service_models:
+            message_name = rpc_service_model.object.name
+            rpc_message = getattr(rpc_msg_module, message_name)
+            rpc_service = RPC_Service(node, rpc_service_model.name, rpc_message)
+
+            node.rpc_services.append(rpc_service)
+            self.rpc_services.append(rpc_service)
+
+    def _create_rpc_clients_for_node(self, rpc_client_models, node: Node):
+        rpc_msg_module = import_module('nodem.msgs.rpc')
+        for rpc_client_model in rpc_client_models:
+            message_name = rpc_client_model.object.name
+            message_module = getattr(rpc_msg_module, message_name)
+            rpc_client = RPC_Client(node, rpc_client_model.name, message_module)
+
+            node.rpc_clients.append(rpc_client)
+            self.rpc_clients.append(rpc_client)
 
     def generate_on_request_methods(self):
         """Creates the methods.py file that contains the on_request methods for the
@@ -134,8 +165,8 @@ class NodesHandler:
         for node in self.nodes:
             commlib_node = CommNode(
                 node_name=node.name,
-                transport_type=self.broker.transport_type,
-                transport_connection_params=self.broker.connection_params,
+                transport_type=node.broker.transport_type,
+                transport_connection_params=node.broker.connection_params,
                 debug=True)
             node.commlib_node = commlib_node
 

@@ -3,7 +3,7 @@ reference broker_dsl as bdsl
 
 Entities:
     imports*=Import
-    broker=Broker
+    broker*=Broker
     nodes*=Node
 ;
 
@@ -16,6 +16,7 @@ Node:
         (('properties:' properties=[idl.Object])?
         ('outPorts:' outports*=OutPort)?
         ('inPorts:' inports*=InPort)?)#
+        'broker:' broker=[bdsl.Broker]
     '}'
 ;
 
@@ -26,7 +27,7 @@ OutPort:
 Publisher:
     '- publisher:'
         'topic:' topic=FQN
-        ('message:' object=[idl.PubSubMessage])?
+        'message:' object=[idl.PubSubMessage]
 ;
 
 RPC_Service:

@@ -1,7 +1,8 @@
 import messages.idl;
-import broker.br;
+import brokers.br;
 
 Broker: R4ABroker
+Broker: MyRabbit
 
 Node thermoSensor{
     properties: thermoProperties
@@ -14,6 +15,7 @@ Node thermoSensor{
             message: ThermoSensorMsg2
         - rpc_service thermoRPC:
             message: ThermoSensorMsgR
+    broker: R4ABroker
 }
 
 Node sonarSensor{
@@ -23,12 +25,14 @@ Node sonarSensor{
             message: SonarSensorMsg
         - rpc_service sonarRPC:
             message: SonarSensorMsgR
+    broker: R4ABroker
 }
 
 Node TV{
     inPorts:
         - subscriber:
             topic: s.s
+    broker: R4ABroker
 }
 
 Node ACDevice{
@@ -37,4 +41,5 @@ Node ACDevice{
             topic: thermo.humidity
         - rpc_client thermoRPC:
             message: ThermoSensorMsgR
+    broker: R4ABroker
 }
