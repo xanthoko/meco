@@ -14,7 +14,8 @@
 - [x] Override commlib generator for on_request methods
 - [x] Integrate broker-dsl
 - [x] Add support for redis and mqtt protocol
-
+- [ ] Specify broker for every endpoint
+- [ ] Create a bridge to bind brokers
 
 ## Examples
 
