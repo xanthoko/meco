@@ -9,12 +9,12 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.utils import get_all, build_model, get_first
 from nodem.logic import (default_on_message, default_on_request,
                          generate_on_request_methods_file)
-from nodem.entities import (Node, Broker, Publisher, Subscriber, RPC_Service,
-                            RPC_Client)
+from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
+from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
+                            InNode, OutNode)
 
 
 class NodesHandler:
@@ -22,6 +22,8 @@ class NodesHandler:
     def __init__(self, model_path='models/nodes.ent'):
         self.brokers = []
         self.nodes = []
+        self.in_nodes = []
+        self.out_nodes = []
         # service entities lists
         self.publishers = []
         self.subscribers = []
@@ -84,29 +86,35 @@ class NodesHandler:
             f.write(text)
 
     def create_node_objects(self):
-        """Creates a Node object for every node in the model."""
-        model_nodes = self.model.nodes
+        node_models = self.model.nodes
+        in_node_models = find_class_objects(node_models, 'InNode')
+        out_node_models = find_class_objects(node_models, 'OutNode')
 
-        for model_node in model_nodes:
-            publishers = get_all(model_node.outports, '__class__.__name__',
-                                 'Publisher')
-            subscribers = get_all(model_node.inports, '__class__.__name__',
-                                  'Subscriber')
-            rpc_services = get_all(model_node.outports, '__class__.__name__',
-                                   'RPC_Service')
-            rpc_clients = get_all(model_node.inports, '__class__.__name__',
-                                  'RPC_Client')
-            broker = get_first(self.brokers, 'name', model_node.broker.name)
-            node = Node(model_node.name, broker)
+        for in_node_model in in_node_models:
+            subscriber_models = find_class_objects(in_node_model.inports,
+                                                   'Subscriber')
+            rps_services_models = find_class_objects(in_node_model.inports,
+                                                     'RPC_Service')
+            broker = get_first(self.brokers, 'name', in_node_model.broker.name)
+            node = InNode(in_node_model.name, broker)
+            self._create_subscribers_for_node(subscriber_models, node)
+            self._create_rpc_services_for_node(rps_services_models, node)
 
-            self._create_publishers_for_node(publishers, node)
-            self._create_subscribers_for_node(subscribers, node)
-            self._create_rpc_services_for_node(rpc_services, node)
-            self._create_rpc_clients_for_node(rpc_clients, node)
+            self.in_nodes.append(node)
 
-            self.nodes.append(node)
+        for out_node_model in out_node_models:
+            publisher_models = find_class_objects(out_node_model.outports,
+                                                  'Publisher')
+            rpc_clients_models = find_class_objects(out_node_model.outports,
+                                                    'RPC_Client')
+            broker = get_first(self.brokers, 'name', out_node_model.broker.name)
+            node = OutNode(out_node_model.name, broker)
+            self._create_publishers_for_node(publisher_models, node)
+            self._create_rpc_clients_for_node(rpc_clients_models, node)
 
-    def _create_publishers_for_node(self, publisher_models, node: Node):
+            self.out_nodes.append(node)
+
+    def _create_publishers_for_node(self, publisher_models, node: OutNode):
         pubsub_msg_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
             pubsub_message = getattr(pubsub_msg_module, publisher_model.object.name)
@@ -115,14 +123,14 @@ class NodesHandler:
             node.publishers.append(publisher)
             self.publishers.append(publisher)
 
-    def _create_subscribers_for_node(self, subscriber_models, node: Node):
+    def _create_subscribers_for_node(self, subscriber_models, node: InNode):
         for subscriber_model in subscriber_models:
             subscriber = Subscriber(node, subscriber_model.topic)
 
             node.subscribers.append(subscriber)
             self.subscribers.append(subscriber)
 
-    def _create_rpc_services_for_node(self, rpc_service_models, node: Node):
+    def _create_rpc_services_for_node(self, rpc_service_models, node: InNode):
         rpc_msg_module = import_module('nodem.msgs.rpc')
         for rpc_service_model in rpc_service_models:
             message_name = rpc_service_model.object.name
@@ -132,7 +140,7 @@ class NodesHandler:
             node.rpc_services.append(rpc_service)
             self.rpc_services.append(rpc_service)
 
-    def _create_rpc_clients_for_node(self, rpc_client_models, node: Node):
+    def _create_rpc_clients_for_node(self, rpc_client_models, node: OutNode):
         rpc_msg_module = import_module('nodem.msgs.rpc')
         for rpc_client_model in rpc_client_models:
             message_name = rpc_client_model.object.name
@@ -162,7 +170,7 @@ class NodesHandler:
         self._create_commlib_rpc_clients()
 
     def _create_commlib_nodes(self):
-        for node in self.nodes:
+        for node in self.in_nodes + self.out_nodes:
             commlib_node = CommNode(
                 node_name=node.name,
                 transport_type=node.broker.transport_type,

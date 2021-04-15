@@ -10,11 +10,11 @@ def get_example_node_parser():
 
 
 def get_example_rpc_service(node_parser):
-    return node_parser.nodes[0].rpc_services[0]
+    return node_parser.in_nodes[-1].rpc_services[0]
 
 
 def get_example_rpc_client(node_parser):
-    return node_parser.nodes[-1].rpc_clients[0]
+    return node_parser.out_nodes[0].rpc_clients[0]
 
 
 def _is_service_arg_valid(service_arg):

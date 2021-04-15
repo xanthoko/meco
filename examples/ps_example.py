@@ -11,11 +11,11 @@ def get_example_node_parser():
 
 
 def get_example_publisher(node_parser):
-    return node_parser.nodes[0].publishers[0]
+    return node_parser.out_nodes[0].publishers[0]
 
 
 def get_example_subscriber(node_parser):
-    return node_parser.nodes[-1].subscribers[0].commlib_subscriber
+    return node_parser.in_nodes[-1].subscribers[0].commlib_subscriber
 
 
 def _is_service_arg_valid(service_arg):

@@ -36,6 +36,10 @@ def get_all(iterable, field, value):
     return list(filter(lambda x: rgetattr(x, field) == value, iterable))
 
 
+def find_class_objects(iterable, value):
+    return get_all(iterable, '__class__.__name__', value)
+
+
 def typecasted_value(prop):
     """Typecasting {prop.value} to {prop.type} type
 

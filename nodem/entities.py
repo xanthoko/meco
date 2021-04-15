@@ -14,28 +14,32 @@ class Broker:
         return self.name
 
 
-class Node:
-    """The parent class that contains the service entities i.e. publishers, subscribers
-    rpc_services and rpc_clients."""
-    def __init__(self, name, broker: Broker):
+class InNode:
+    def __init__(self, name: str, broker: Broker):
         self.name = name
         self.broker = broker
-        self.commlib_node = None
 
-        self.publishers = []
         self.subscribers = []
         self.rpc_services = []
-        self.rpc_clients = []
-
-    def __str__(self):
-        return self.name
 
     def __repr__(self):
-        return f'Node: {self.name}'
+        return f'InNode: {self.name}'
+
+
+class OutNode:
+    def __init__(self, name: str, broker: Broker):
+        self.name = name
+        self.broker = broker
+
+        self.publishers = []
+        self.rpc_clients = []
+
+    def __repr__(self):
+        return f'OutNode: {self.name}'
 
 
 class Publisher:
-    def __init__(self, node: Node, topic: str, message_module: PubSubMessage):
+    def __init__(self, node: OutNode, topic: str, message_module: PubSubMessage):
         self.node = node
         self.topic = topic
         self.commlib_publisher = None
@@ -53,7 +57,7 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, node: Node, topic: str):
+    def __init__(self, node: InNode, topic: str):
         self.node = node
         self.topic = topic
         self.commlib_subscriber = None
@@ -63,7 +67,7 @@ class Subscriber:
 
 
 class RPC_Service:
-    def __init__(self, node: Node, name: str, message_module: RPCMessage):
+    def __init__(self, node: InNode, name: str, message_module: RPCMessage):
         self.node = node
         self.name = name
         self.message_module = message_module
@@ -78,7 +82,7 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self, node: Node, name: str, message_module: RPCMessage):
+    def __init__(self, node: OutNode, name: str, message_module: RPCMessage):
         self.node = node
         self.name = name
         self.message_module = message_module

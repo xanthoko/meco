@@ -12,15 +12,25 @@ Broker:
 ;
 
 Node:
-    'Node' name=ID '{'
-        (('outPorts:' outports*=OutPort)?
-        ('inPorts:' inports*=InPort)?)#
-        'broker:' broker=[bdsl.Broker]
+    InNode | OutNode
+;
+
+InNode:
+    'InNode' name=ID '{'
+        ('ports:' inports*=InPort
+        'broker:' broker=[bdsl.Broker])#
+    '}'
+;
+
+OutNode:
+    'OutNode' name=ID '{'
+        ('ports:' outports*=OutPort
+        'broker:' broker=[bdsl.Broker])#
     '}'
 ;
 
 OutPort:
-    Publisher | RPC_Service
+    Publisher | RPC_Client
 ;
 
 Publisher:
@@ -29,13 +39,13 @@ Publisher:
         'message:' object=[idl.PubSubMessage]
 ;
 
-RPC_Service:
-    '- rpc_service' name=ID ':'
+RPC_Client:
+    '- rpc_client' name=ID ':'
         'message:' object=[idl.RPCMessage]
 ;
 
 InPort:
-    Subscriber | RPC_Client
+    Subscriber | RPC_Service
 ;
 
 Subscriber:
@@ -43,13 +53,9 @@ Subscriber:
         'topic:' topic=FQN
 ;
 
-RPC_Client:
-    '- rpc_client' name=ID ':'
+RPC_Service:
+    '- rpc_service' name=ID ':'
         'message:' object=[idl.RPCMessage]
-;
-
-Object:
-    fields*=[idl.Property]
 ;
 
 
