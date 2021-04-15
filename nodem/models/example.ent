@@ -6,14 +6,13 @@ Broker: MyRabbit
 Broker: MyRedis
 
 Node thermoSensor{
-    properties: thermoProperties
     outPorts:
         - publisher:
             topic: thermo.humidity
             message: ThermoSensorMsg2
         - rpc_service thermoRPC:
             message: SonarSensorMsgR
-    broker: MyRedis
+    broker: R4ABroker
 }
 
 Node sonarSensor{
@@ -21,14 +20,14 @@ Node sonarSensor{
         - publisher:
             topic: ss.data
             message: SonarSensorMsg
-    broker: MyRedis
+    broker: R4ABroker
 }
 
 Node TV{
     inPorts:
         - subscriber:
             topic: tv.data
-    broker: MyRedis
+    broker: R4ABroker
 }
 
 Node ACDevice{
@@ -37,5 +36,5 @@ Node ACDevice{
             topic: thermo.humidity
         - rpc_client thermoRPC:
             message: SonarSensorMsgR
-    broker: MyRedis
+    broker: R4ABroker
 }

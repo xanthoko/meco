@@ -13,8 +13,7 @@ Broker:
 
 Node:
     'Node' name=ID '{'
-        (('properties:' properties=[idl.Object])?
-        ('outPorts:' outports*=OutPort)?
+        (('outPorts:' outports*=OutPort)?
         ('inPorts:' inports*=InPort)?)#
         'broker:' broker=[bdsl.Broker]
     '}'

@@ -1,9 +1,5 @@
-from importlib import import_module
-
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
-
-from nodem.utils import typecasted_value
 
 
 class Broker:
@@ -20,38 +16,16 @@ class Broker:
 
 class Node:
     """The parent class that contains the service entities i.e. publishers, subscribers
-    rpc_services and rpc_clients along with the given properties for the node."""
-    def __init__(self, name, properties, broker: Broker):
+    rpc_services and rpc_clients."""
+    def __init__(self, name, broker: Broker):
         self.name = name
         self.broker = broker
+        self.commlib_node = None
 
-        self._properties = []
         self.publishers = []
         self.subscribers = []
         self.rpc_services = []
         self.rpc_clients = []
-
-        self.set_properties(properties)
-
-        self.commlib_node = None
-
-    def set_properties(self, object_model):
-        """
-        Args:
-            object_model (textx Object model): Object model that has the properties
-                field.
-        """
-        if not object_model:
-            return
-        node_properties = object_model.properties
-        for node_property in node_properties:
-            # node property has 'type', 'default' and 'name' fields
-            setattr(self, node_property.name, typecasted_value(node_property))
-            self._properties.append(node_property.name)
-
-    @property
-    def properties(self):
-        return {x: getattr(self, x) for x in self._properties}
 
     def __str__(self):
         return self.name

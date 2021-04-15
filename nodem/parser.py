@@ -97,7 +97,7 @@ class NodesHandler:
             rpc_clients = get_all(model_node.inports, '__class__.__name__',
                                   'RPC_Client')
             broker = get_first(self.brokers, 'name', model_node.broker.name)
-            node = Node(model_node.name, model_node.properties, broker)
+            node = Node(model_node.name, broker)
 
             self._create_publishers_for_node(publishers, node)
             self._create_subscribers_for_node(subscribers, node)

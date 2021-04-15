@@ -5,7 +5,6 @@ Broker: R4ABroker
 Broker: MyRabbit
 
 Node thermoSensor{
-    properties: thermoProperties
     outPorts:
         - publisher:
             topic: thermo.temp
