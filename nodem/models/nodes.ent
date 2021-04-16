@@ -42,3 +42,7 @@ InNode ACDevice{
             message: ThermoSensorMsgR
     broker: R4ABroker
 }
+
+Bridge R4A2MyRab{
+    R4ABroker(thermo.humidity)-MyRabbit(thermo.humidity)
+}

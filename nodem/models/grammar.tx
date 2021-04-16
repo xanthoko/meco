@@ -12,7 +12,7 @@ Broker:
 ;
 
 Node:
-    InNode | OutNode
+    InNode | OutNode | FuncNode
 ;
 
 InNode:
@@ -58,6 +58,16 @@ RPC_Service:
         'message:' object=[idl.RPCMessage]
 ;
 
+FuncNode:
+    Bridge
+;
+
+Bridge:
+    'Bridge' name=ID '{'
+        brokerA=[bdsl.Broker] '(' fromTopic=FQN ')' '-'
+        brokerB=[bdsl.Broker] '(' toTopic=FQN ')'
+    '}'
+;
 
 FQN: ID+['.'];
 FQNI: ID+['.']('.*')?;

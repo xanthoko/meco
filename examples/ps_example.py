@@ -19,8 +19,14 @@ def get_example_subscriber(node_parser):
         'ACDevice').subscribers[0].commlib_subscriber
 
 
+def get_example_bridge(node_parser):
+    return node_parser.bridges[0].commlib_bridge
+
+
 def _is_service_arg_valid(service_arg):
-    valid_arguments = ['s', 'sub', 'subscriber', 'p', 'pub', 'publisher']
+    valid_arguments = [
+        's', 'sub', 'subscriber', 'p', 'pub', 'publisher', 'b', 'bridge'
+    ]
     return service_arg in valid_arguments
 
 
@@ -44,3 +50,6 @@ if __name__ == '__main__':
         example_publisher = get_example_publisher(node_parser)
         example_publisher.publish()
         sleep(1)
+    elif service_arg in ['b', 'bridge']:
+        example_bridge = get_example_bridge(node_parser)
+        example_bridge.run_forever()

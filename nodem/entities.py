@@ -13,6 +13,9 @@ class Broker:
     def __repr__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 
 class InNode:
     def __init__(self, name: str, broker: Broker, commlib_node=None):
@@ -108,3 +111,17 @@ class RPC_Client:
 
     def __repr__(self):
         return f'RPC Client of {self.node}'
+
+
+class Bridge:
+    def __init__(self, brokerA: Broker, brokerB: Broker, from_topic: str,
+                 to_topic: str, commlib_bridge):
+        self.brokerA = brokerA
+        self.brokerB = brokerB
+        self.from_topic = from_topic
+        self.to_topic = to_topic
+
+        self.commlib_bridge = commlib_bridge
+
+    def __repr__(self):
+        return f'Bridge {self.brokerA}-{self.brokerB}'

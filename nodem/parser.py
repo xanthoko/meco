@@ -1,6 +1,7 @@
 from importlib import import_module
 
 from comm_idl.generator import GeneratorCommlibPy
+from commlib.bridges import TopicBridge, TopicBridgeType
 from commlib.node import TransportType, Node as CommNode
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
                                      as amqpCreds)
@@ -13,7 +14,7 @@ from nodem.logic import default_on_message, default_on_request
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
-                            InNode, OutNode)
+                            InNode, OutNode, Bridge)
 
 
 class NodesHandler:
@@ -22,6 +23,7 @@ class NodesHandler:
         self.brokers = []
         self.in_nodes = []
         self.out_nodes = []
+        self.bridges = []
         # service entities lists
         self.publishers = []
         self.subscribers = []
@@ -36,6 +38,7 @@ class NodesHandler:
         self.create_message_modules()
         self.parse_in_nodes()
         self.parse_out_nodes()
+        self.parse_bridges()
 
     def set_broker_connections(self):
         broker_type_map = {
@@ -201,9 +204,34 @@ class NodesHandler:
         return commlib_node.create_rpc_client(rpc_name=name,
                                               msg_type=message_module)
 
+    def parse_bridges(self):
+        bridge_models = find_class_objects(self.model.nodes, 'Bridge')
+
+        for bridge_model in bridge_models:
+            brokerA = self.get_broker_by_name(bridge_model.brokerA.name)
+            brokerB = self.get_broker_by_name(bridge_model.brokerB.name)
+            from_topic = bridge_model.fromTopic
+            to_topic = bridge_model.toTopic
+
+            bridge_type = getattr(
+                TopicBridgeType,
+                f'{brokerA.transport_type.name}_TO_{brokerB.transport_type.name}')
+            commlib_bridge = TopicBridge(
+                bridge_type,
+                from_uri=from_topic,
+                to_uri=to_topic,
+                from_broker_params=brokerA.connection_params,
+                to_broker_params=brokerB.connection_params)
+            bridge = Bridge(brokerA, brokerB, from_topic, to_topic, commlib_bridge)
+
+            self.bridges.append(bridge)
+
     def get_node_by_name(self, node_name):
         total_nodes = self.in_nodes + self.out_nodes
         return get_first(total_nodes, 'name', node_name)
+
+    def get_broker_by_name(self, broker_name):
+        return get_first(self.brokers, 'name', broker_name)
 
 
 if __name__ == '__main__':

@@ -36,5 +36,9 @@ InNode ACDevice{
             topic: thermo.humidity
         - rpc_service thermoRPC:
             message: SonarSensorMsgR
-    broker: R4ABroker
+    broker: MyRedis
+}
+
+Bridge R4A2MyRab{
+    R4ABroker(thermo.humidity)-MyRedis(thermo.humidity)
 }
