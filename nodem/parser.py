@@ -21,7 +21,6 @@ class NodesHandler:
     """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent'):
         self.brokers = []
-        self.nodes = []
         self.in_nodes = []
         self.out_nodes = []
         # service entities lists
@@ -203,6 +202,10 @@ class NodesHandler:
             commlib_rpc_client = rpc_client.node.commlib_node.create_rpc_client(
                 rpc_name=rpc_client.name, msg_type=rpc_client.message_module)
             rpc_client.commlib_rpc_client = commlib_rpc_client
+
+    def get_node_by_name(self, node_name):
+        total_nodes = self.in_nodes + self.out_nodes
+        return get_first(total_nodes, 'name', node_name)
 
 
 if __name__ == '__main__':
