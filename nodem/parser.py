@@ -1,8 +1,8 @@
 from importlib import import_module
 
+from commlib.node import TransportType
 from comm_idl.generator import GeneratorCommlibPy
 from commlib.bridges import TopicBridge, TopicBridgeType
-from commlib.node import TransportType, Node as CommNode
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
                                      as amqpCreds)
 from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credentials
@@ -10,7 +10,7 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.logic import default_on_message, default_on_request
+from nodem.logic import default_on_request
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
@@ -91,8 +91,7 @@ class NodesHandler:
         for in_node_model in in_node_models:
             broker = get_first(self.brokers, 'name', in_node_model.broker.name)
             # --- node ---
-            commlib_in_node = self._create_commlib_node(in_node_model.name, broker)
-            in_node = InNode(in_node_model.name, broker, commlib_in_node)
+            in_node = InNode(in_node_model.name, broker)
             self.in_nodes.append(in_node)
 
             # --- subscribers ---
@@ -112,9 +111,7 @@ class NodesHandler:
             broker = get_first(self.brokers, 'name', out_node_model.broker.name)
 
             # --- node ---
-            commlib_out_node = self._create_commlib_node(out_node_model.name,
-                                                         broker)
-            out_node = OutNode(out_node_model.name, broker, commlib_out_node)
+            out_node = OutNode(out_node_model.name, broker)
             self.out_nodes.append(out_node)
 
             # --- publishers ---
@@ -130,10 +127,7 @@ class NodesHandler:
     def _create_subscribers_for_node(self, subscriber_models, in_node: InNode):
         for subscriber_model in subscriber_models:
             topic = subscriber_model.topic
-            # create subscribers
-            commlib_subscriber = self._create_commlib_subscriber(
-                topic, in_node.commlib_node)
-            subscriber = Subscriber(in_node, topic, commlib_subscriber)
+            subscriber = Subscriber(in_node, topic)
 
             in_node.subscribers.append(subscriber)
             self.subscribers.append(subscriber)
@@ -143,11 +137,8 @@ class NodesHandler:
         for rpc_service_model in rpc_service_models:
             name = rpc_service_model.name
             rpc_message = getattr(rpc_msg_module, rpc_service_model.object.name)
-
-            commlib_rpc_service = self._create_commlib_rpc_service(
-                name, rpc_message, in_node.commlib_node, default_on_request)
             rpc_service = RPC_Service(in_node, name, rpc_message,
-                                      default_on_request, commlib_rpc_service)
+                                      default_on_request)
 
             in_node.rpc_services.append(rpc_service)
             self.rpc_services.append(rpc_service)
@@ -157,11 +148,7 @@ class NodesHandler:
         for publisher_model in publisher_models:
             topic = publisher_model.topic
             pubsub_message = getattr(pubsub_msg_module, publisher_model.object.name)
-
-            commlib_publisher = self._create_commlib_publisher(
-                topic, pubsub_message, out_node.commlib_node)
-            publisher = Publisher(out_node, topic, pubsub_message,
-                                  commlib_publisher)
+            publisher = Publisher(out_node, topic, pubsub_message)
 
             out_node.publishers.append(publisher)
             self.publishers.append(publisher)
@@ -169,40 +156,11 @@ class NodesHandler:
     def _create_rpc_clients_for_node(self, rpc_client_models, out_node: OutNode):
         rpc_msg_module = import_module('nodem.msgs.rpc')
         for rpc_client_model in rpc_client_models:
-            name = rpc_client_model.name
             message_module = getattr(rpc_msg_module, rpc_client_model.object.name)
-
-            commlib_rpc_client = self._create_commlib_rpc_client(
-                name, message_module, out_node.commlib_node)
-            rpc_client = RPC_Client(out_node, rpc_client_model.name, message_module,
-                                    commlib_rpc_client)
+            rpc_client = RPC_Client(out_node, rpc_client_model.name, message_module)
 
             out_node.rpc_clients.append(rpc_client)
             self.rpc_clients.append(rpc_client)
-
-    def _create_commlib_node(self, name: str, broker: Broker) -> CommNode:
-        return CommNode(node_name=name,
-                        transport_type=broker.transport_type,
-                        transport_connection_params=broker.connection_params,
-                        debug=True)
-
-    def _create_commlib_publisher(self, topic: str, message_module,
-                                  commlib_node: CommNode):
-        return commlib_node.create_publisher(topic=topic, msg_type=message_module)
-
-    def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode):
-        return commlib_node.create_subscriber(topic=topic,
-                                              on_message=default_on_message)
-
-    def _create_commlib_rpc_service(self, name: str, message_module, commlib_node,
-                                    on_request):
-        return commlib_node.create_rpc(rpc_name=name,
-                                       msg_type=message_module,
-                                       on_request=on_request)
-
-    def _create_commlib_rpc_client(self, name: str, message_module, commlib_node):
-        return commlib_node.create_rpc_client(rpc_name=name,
-                                              msg_type=message_module)
 
     def parse_bridges(self):
         bridge_models = find_class_objects(self.model.nodes, 'Bridge')

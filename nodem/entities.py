@@ -1,5 +1,7 @@
+from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
+from nodem.logic import default_on_message, default_on_request
 
 
 class Broker:
@@ -18,41 +20,50 @@ class Broker:
 
 
 class InNode:
-    def __init__(self, name: str, broker: Broker, commlib_node=None):
+    def __init__(self, name: str, broker: Broker):
         self.name = name
         self.broker = broker
-        self.commlib_node = commlib_node
+        self.commlib_node = self._create_commlib_node(name, broker)
 
         self.subscribers = []
         self.rpc_services = []
+
+    def _create_commlib_node(self, name: str, broker: Broker) -> CommNode:
+        return CommNode(node_name=name,
+                        transport_type=broker.transport_type,
+                        transport_connection_params=broker.connection_params,
+                        debug=True)
 
     def __repr__(self):
         return f'InNode: {self.name}'
 
 
 class OutNode:
-    def __init__(self, name: str, broker: Broker, commlib_node=None):
+    def __init__(self, name: str, broker: Broker):
         self.name = name
         self.broker = broker
-        self.commlib_node = commlib_node
+        self.commlib_node = self._create_commlib_node(name, broker)
 
         self.publishers = []
         self.rpc_clients = []
+
+    def _create_commlib_node(self, name: str, broker: Broker) -> CommNode:
+        return CommNode(node_name=name,
+                        transport_type=broker.transport_type,
+                        transport_connection_params=broker.connection_params,
+                        debug=True)
 
     def __repr__(self):
         return f'OutNode: {self.name}'
 
 
 class Publisher:
-    def __init__(self,
-                 node: OutNode,
-                 topic: str,
-                 message_class: PubSubMessage,
-                 commlib_publisher=None):
+    def __init__(self, node: OutNode, topic: str, message_class: PubSubMessage):
         self.node = node
         self.topic = topic
         self.message_class = message_class
-        self.commlib_publisher = commlib_publisher
+        self.commlib_publisher = self._create_commlib_publisher(
+            topic, message_class, node.commlib_node)
 
     def publish(self):
         if self.commlib_publisher:
@@ -61,32 +72,44 @@ class Publisher:
         else:
             print('[ERROR] Commlib publisher not set.')
 
+    def _create_commlib_publisher(self, topic: str, message_module,
+                                  commlib_node: CommNode):
+        return commlib_node.create_publisher(topic=topic, msg_type=message_module)
+
     def __repr__(self):
         return f'Publisher of: {self.node}'
 
 
 class Subscriber:
-    def __init__(self, node: InNode, topic: str, commlib_subscriber=None):
+    def __init__(self, node: InNode, topic: str):
         self.node = node
         self.topic = topic
-        self.commlib_subscriber = commlib_subscriber
+        self.commlib_subscriber = self._create_commlib_subscriber(
+            topic, node.commlib_node)
+
+    def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode):
+        return commlib_node.create_subscriber(topic=topic,
+                                              on_message=default_on_message)
 
     def __repr__(self):
         return f'Subscriber of: {self.node}'
 
 
 class RPC_Service:
-    def __init__(self,
-                 node: InNode,
-                 name: str,
-                 message_class: RPCMessage,
-                 on_request,
-                 commlib_rpc_service=None):
+    def __init__(self, node: InNode, name: str, message_class: RPCMessage,
+                 on_request):
         self.node = node
         self.name = name
         self.on_request = on_request
         self.message_class = message_class
-        self.commlib_rpc_service = commlib_rpc_service
+        self.commlib_rpc_service = self._create_commlib_rpc_service(
+            name, message_class, node.commlib_node, default_on_request)
+
+    def _create_commlib_rpc_service(self, name: str, message_module, commlib_node,
+                                    on_request):
+        return commlib_node.create_rpc(rpc_name=name,
+                                       msg_type=message_module,
+                                       on_request=on_request)
 
     def __str__(self):
         return self.name
@@ -96,15 +119,16 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self,
-                 node: OutNode,
-                 name: str,
-                 message_module: RPCMessage,
-                 commlib_rpc_client=None):
+    def __init__(self, node: OutNode, name: str, message_module: RPCMessage):
         self.node = node
         self.name = name
         self.message_module = message_module
-        self.commlib_rpc_client = commlib_rpc_client
+        self.commlib_rpc_client = self._create_commlib_rpc_client(
+            name, message_module, node.commlib_node)
+
+    def _create_commlib_rpc_client(self, name: str, message_module, commlib_node):
+        return commlib_node.create_rpc_client(rpc_name=name,
+                                              msg_type=message_module)
 
     def __str__(self):
         return self.name
