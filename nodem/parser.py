@@ -2,7 +2,6 @@ from importlib import import_module
 
 from commlib.node import TransportType
 from comm_idl.generator import GeneratorCommlibPy
-from commlib.bridges import TopicBridge, TopicBridgeType
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
                                      as amqpCreds)
 from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credentials
@@ -34,13 +33,20 @@ class NodesHandler:
         self.parse_model()
 
     def parse_model(self):
-        self.set_broker_connections()
-        self.create_message_modules()
+        self.parse_broker_connections()
+        self.generate_message_modules()
         self.parse_in_nodes()
         self.parse_out_nodes()
         self.parse_bridges()
 
-    def set_broker_connections(self):
+    def parse_broker_connections(self):
+        """Parses the broker models and creates Broker entities with their
+        connection parameters."""
+        # broker_type: [
+        #   transport_type: enum,
+        #   connection_params: class,
+        #   credentials: class
+        # ]
         broker_type_map = {
             'RedisBroker': [TransportType.REDIS, redisParams, redisCreds],
             'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams, amqpCreds],
@@ -71,7 +77,7 @@ class NodesHandler:
             broker = Broker(broker_model.name, connection_params, transport_type)
             self.brokers.append(broker)
 
-    def create_message_modules(self):
+    def generate_message_modules(self):
         generator = GeneratorCommlibPy()
         generator.generate(MESSAGES_MODEL_PATH, out_dir=ROOT_PATH)
         # fix import issues
@@ -79,6 +85,8 @@ class NodesHandler:
         self._replace_object_imports(MESSAGES_DIR_PATH + '/rpc.py')
 
     def _replace_object_imports(self, path: str):
+        """The comm-idl generator has dynamic imports that need to be replaced
+        by static ones."""
         with open(path, 'r+') as f:
             text = f.read()
             text = text.replace(' .object', ' nodem.msgs.object')
@@ -136,6 +144,7 @@ class NodesHandler:
         rpc_msg_module = import_module('nodem.msgs.rpc')
         for rpc_service_model in rpc_service_models:
             name = rpc_service_model.name
+            # message classes are attributes of the rpc_msg module
             rpc_message = getattr(rpc_msg_module, rpc_service_model.object.name)
             rpc_service = RPC_Service(in_node, name, rpc_message,
                                       default_on_request)
@@ -147,6 +156,7 @@ class NodesHandler:
         pubsub_msg_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
             topic = publisher_model.topic
+            # message class is an attribute of message module
             pubsub_message = getattr(pubsub_msg_module, publisher_model.object.name)
             publisher = Publisher(out_node, topic, pubsub_message)
 
@@ -163,6 +173,9 @@ class NodesHandler:
             self.rpc_clients.append(rpc_client)
 
     def parse_bridges(self):
+        """A broker bridge connects
+        BrokerA(from_topic) -> BrokerB(to_topic)
+        """
         bridge_models = find_class_objects(self.model.nodes, 'Bridge')
 
         for bridge_model in bridge_models:
@@ -171,17 +184,7 @@ class NodesHandler:
             from_topic = bridge_model.fromTopic
             to_topic = bridge_model.toTopic
 
-            bridge_type = getattr(
-                TopicBridgeType,
-                f'{brokerA.transport_type.name}_TO_{brokerB.transport_type.name}')
-            commlib_bridge = TopicBridge(
-                bridge_type,
-                from_uri=from_topic,
-                to_uri=to_topic,
-                from_broker_params=brokerA.connection_params,
-                to_broker_params=brokerB.connection_params)
-            bridge = Bridge(brokerA, brokerB, from_topic, to_topic, commlib_bridge)
-
+            bridge = Bridge(brokerA, brokerB, from_topic, to_topic)
             self.bridges.append(bridge)
 
     def get_node_by_name(self, node_name):

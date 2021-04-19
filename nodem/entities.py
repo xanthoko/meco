@@ -1,6 +1,7 @@
 from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
+from commlib.bridges import TopicBridge, TopicBridgeType
 from nodem.logic import default_on_message, default_on_request
 
 
@@ -10,7 +11,7 @@ class Broker:
         self.name = name
         self.connection_params = connection_params
         self.transport_type = transport_type
-        self.commlib_broker = None
+        self.type = self.transport_type.name
 
     def __repr__(self):
         return self.name
@@ -139,13 +140,23 @@ class RPC_Client:
 
 class Bridge:
     def __init__(self, brokerA: Broker, brokerB: Broker, from_topic: str,
-                 to_topic: str, commlib_bridge):
+                 to_topic: str):
         self.brokerA = brokerA
         self.brokerB = brokerB
         self.from_topic = from_topic
         self.to_topic = to_topic
 
-        self.commlib_bridge = commlib_bridge
+        self.commlib_bridge = self._create_commlib_bridge()
+
+    def _create_commlib_bridge(self):
+        bridge_type = getattr(TopicBridgeType,
+                              f'{self.brokerA.type}_TO_{self.brokerB.type}')
+
+        return TopicBridge(bridge_type,
+                           from_uri=self.from_topic,
+                           to_uri=self.to_topic,
+                           from_broker_params=self.brokerA.connection_params,
+                           to_broker_params=self.brokerB.connection_params)
 
     def __repr__(self):
         return f'Bridge {self.brokerA}-{self.brokerB}'

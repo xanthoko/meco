@@ -12,7 +12,7 @@ OutNode thermoSensor{
             message: ThermoSensorMsg2
         - rpc_client thermoRPC:
             message: SonarSensorMsgR
-    broker: MyRabbit
+    broker: R4ABroker
 }
 
 OutNode sonarSensor{
@@ -20,14 +20,14 @@ OutNode sonarSensor{
         - publisher:
             topic: ss.data
             message: SonarSensorMsg
-    broker: MyRabbit
+    broker: R4ABroker
 }
 
 InNode TV{
     ports:
         - subscriber:
             topic: tv.data
-    broker: MyRabbit
+    broker: R4ABroker
 }
 
 InNode ACDevice{
@@ -40,5 +40,5 @@ InNode ACDevice{
 }
 
 Bridge R4A2MyRab{
-    R4ABroker(thermo.humidity)-MyRedis(thermo.humidity)
+    R4ABroker(thermo.humidity)-MyRabbit(thermo.humidity)
 }
