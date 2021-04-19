@@ -15,7 +15,8 @@
 - [x] Integrate broker-dsl
 - [x] Add support for redis and mqtt protocol
 - [x] Specify broker for every node
-- [ ] Create a bridge to bind brokers
+- [x] Create bridges to bind brokers
+- [ ] Add http proxy functionality
 
 ## Examples
 

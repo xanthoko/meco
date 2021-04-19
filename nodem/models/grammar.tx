@@ -63,9 +63,20 @@ FuncNode:
 ;
 
 Bridge:
-    'Bridge' name=ID '{'
+    TopicBridge | RPCBridge
+;
+
+TopicBridge:
+    'TopicBridge' name=ID '{'
         brokerA=[bdsl.Broker] '(' fromTopic=FQN ')' '-'
         brokerB=[bdsl.Broker] '(' toTopic=FQN ')'
+    '}'
+;
+
+RPCBridge:
+    'RPCBridge' name=ID '{'
+        brokerA=[bdsl.Broker] '(' nameA=ID ')' '-'
+        brokerB=[bdsl.Broker] '(' nameB=ID ')'
     '}'
 ;
 

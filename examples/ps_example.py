@@ -11,16 +11,16 @@ def get_example_node_parser():
 
 
 def get_example_publisher(node_parser):
-    return node_parser.get_node_by_name('thermoSensor').publishers[0]
+    return node_parser.get_node_by_name('thermoSensor', 'out').publishers[0]
 
 
 def get_example_subscriber(node_parser):
-    return node_parser.get_node_by_name(
-        'ACDevice').subscribers[0].commlib_subscriber
+    return node_parser.get_node_by_name('ACDevice',
+                                        'in').subscribers[0].commlib_subscriber
 
 
 def get_example_bridge(node_parser):
-    return node_parser.bridges[0].commlib_bridge
+    return node_parser.get_bridge_by_name('R4A2MyRab', 'topic').commlib_bridge
 
 
 def _is_service_arg_valid(service_arg):

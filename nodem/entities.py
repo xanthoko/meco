@@ -1,8 +1,9 @@
 from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
-from commlib.bridges import TopicBridge, TopicBridgeType
 from nodem.logic import default_on_message, default_on_request
+from commlib.bridges import (TopicBridge as CommTopBridge, TopicBridgeType,
+                             RPCBridge as CommRPCBridge, RPCBridgeType)
 
 
 class Broker:
@@ -138,9 +139,10 @@ class RPC_Client:
         return f'RPC Client of {self.node}'
 
 
-class Bridge:
-    def __init__(self, brokerA: Broker, brokerB: Broker, from_topic: str,
+class TopicBridge:
+    def __init__(self, name: str, brokerA: Broker, brokerB: Broker, from_topic: str,
                  to_topic: str):
+        self.name = name
         self.brokerA = brokerA
         self.brokerB = brokerB
         self.from_topic = from_topic
@@ -152,11 +154,36 @@ class Bridge:
         bridge_type = getattr(TopicBridgeType,
                               f'{self.brokerA.type}_TO_{self.brokerB.type}')
 
-        return TopicBridge(bridge_type,
-                           from_uri=self.from_topic,
-                           to_uri=self.to_topic,
-                           from_broker_params=self.brokerA.connection_params,
-                           to_broker_params=self.brokerB.connection_params)
+        return CommTopBridge(bridge_type,
+                             from_uri=self.from_topic,
+                             to_uri=self.to_topic,
+                             from_broker_params=self.brokerA.connection_params,
+                             to_broker_params=self.brokerB.connection_params)
 
     def __repr__(self):
-        return f'Bridge {self.brokerA}-{self.brokerB}'
+        return f'Topic bridge {self.brokerA}-{self.brokerB}'
+
+
+class RPCBridge:
+    def __init__(self, name: str, brokerA: Broker, brokerB: Broker, nameA: str,
+                 nameB: str):
+        self.name = name
+        self.brokerA = brokerA
+        self.brokerB = brokerB
+        self.nameA = nameA
+        self.nameB = nameB
+
+        self.commlib_bridge = self._create_commlib_bridge()
+
+    def _create_commlib_bridge(self):
+        bridge_type = getattr(RPCBridgeType,
+                              f'{self.brokerA.type}_TO_{self.brokerB.type}')
+
+        return CommRPCBridge(bridge_type,
+                             from_uri=self.nameA,
+                             to_uri=self.nameB,
+                             from_broker_params=self.brokerA.connection_params,
+                             to_broker_params=self.brokerB.connection_params)
+
+    def __repr__(self):
+        return f'RPC bridge {self.brokerA}-{self.brokerB}'

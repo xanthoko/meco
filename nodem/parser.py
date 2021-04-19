@@ -13,7 +13,7 @@ from nodem.logic import default_on_request
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
-                            InNode, OutNode, Bridge)
+                            InNode, OutNode, TopicBridge, RPCBridge)
 
 
 class NodesHandler:
@@ -22,7 +22,8 @@ class NodesHandler:
         self.brokers = []
         self.in_nodes = []
         self.out_nodes = []
-        self.bridges = []
+        self.topic_bridges = []
+        self.rpc_bridges = []
         # service entities lists
         self.publishers = []
         self.subscribers = []
@@ -37,7 +38,8 @@ class NodesHandler:
         self.generate_message_modules()
         self.parse_in_nodes()
         self.parse_out_nodes()
-        self.parse_bridges()
+        self.parse_topic_bridges()
+        self.parse_rpc_bridges()
 
     def parse_broker_connections(self):
         """Parses the broker models and creates Broker entities with their
@@ -172,27 +174,44 @@ class NodesHandler:
             out_node.rpc_clients.append(rpc_client)
             self.rpc_clients.append(rpc_client)
 
-    def parse_bridges(self):
-        """A broker bridge connects
-        BrokerA(from_topic) -> BrokerB(to_topic)
-        """
-        bridge_models = find_class_objects(self.model.nodes, 'Bridge')
+    def parse_topic_bridges(self):
+        """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
+        topic_bridge_models = find_class_objects(self.model.nodes, 'TopicBridge')
 
-        for bridge_model in bridge_models:
-            brokerA = self.get_broker_by_name(bridge_model.brokerA.name)
-            brokerB = self.get_broker_by_name(bridge_model.brokerB.name)
-            from_topic = bridge_model.fromTopic
-            to_topic = bridge_model.toTopic
+        for topic_bridge_model in topic_bridge_models:
+            name = topic_bridge_model.name
+            brokerA = self.get_broker_by_name(topic_bridge_model.brokerA.name)
+            brokerB = self.get_broker_by_name(topic_bridge_model.brokerB.name)
+            from_topic = topic_bridge_model.fromTopic
+            to_topic = topic_bridge_model.toTopic
 
-            bridge = Bridge(brokerA, brokerB, from_topic, to_topic)
-            self.bridges.append(bridge)
+            bridge = TopicBridge(name, brokerA, brokerB, from_topic, to_topic)
+            self.topic_bridges.append(bridge)
 
-    def get_node_by_name(self, node_name):
-        total_nodes = self.in_nodes + self.out_nodes
-        return get_first(total_nodes, 'name', node_name)
+    def parse_rpc_bridges(self):
+        """An rpc bridge connects BrokerA(nameA) -> BrokerB(nameB)"""
+        rpc_bridge_models = find_class_objects(self.model.nodes, 'RPCBridge')
+
+        for rpc_bridge_model in rpc_bridge_models:
+            name = rpc_bridge_model.name
+            brokerA = self.get_broker_by_name(rpc_bridge_model.brokerA.name)
+            brokerB = self.get_broker_by_name(rpc_bridge_model.brokerB.name)
+            nameA = rpc_bridge_model.nameA
+            nameB = rpc_bridge_model.nameB
+
+            bridge = RPCBridge(name, brokerA, brokerB, nameA, nameB)
+            self.rpc_bridges.append(bridge)
+
+    def get_node_by_name(self, node_name, node_type):
+        nodes = self.in_nodes if node_type == 'in' else self.out_nodes
+        return get_first(nodes, 'name', node_name)
 
     def get_broker_by_name(self, broker_name):
         return get_first(self.brokers, 'name', broker_name)
+
+    def get_bridge_by_name(self, bridge_name, bridge_type):
+        bridges = self.topic_bridges if bridge_type == 'topic' else self.rpc_bridges
+        return get_first(bridges, 'name', bridge_name)
 
 
 if __name__ == '__main__':

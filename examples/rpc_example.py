@@ -10,15 +10,19 @@ def get_example_node_parser():
 
 
 def get_example_rpc_service(node_parser):
-    return node_parser.get_node_by_name('ACDevice').rpc_services[0]
+    return node_parser.get_node_by_name('ACDevice', 'in').rpc_services[0]
 
 
 def get_example_rpc_client(node_parser):
-    return node_parser.get_node_by_name('thermoSensor').rpc_clients[0]
+    return node_parser.get_node_by_name('thermoSensor', 'out').rpc_clients[0]
+
+
+def get_example_bridge(node_parser):
+    return node_parser.get_bridge_by_name('R4A2MyRab', 'rpc').commlib_bridge
 
 
 def _is_service_arg_valid(service_arg):
-    valid_arguments = ['c', 'client', 's', 'service']
+    valid_arguments = ['c', 'client', 's', 'service', 'b', 'bridge']
     return service_arg in valid_arguments
 
 
@@ -44,3 +48,6 @@ if __name__ == '__main__':
     elif service_arg in ['s', 'service']:
         example_rpc_service = get_example_rpc_service(node_parser)
         example_rpc_service.commlib_rpc_service.run_forever()
+    elif service_arg in ['b', 'bridge']:
+        example_bridge = get_example_bridge(node_parser)
+        example_bridge.run_forever()
