@@ -1,4 +1,3 @@
-from nodem.nodes import InNode, OutNode
 from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
@@ -21,7 +20,7 @@ class Broker:
 
 
 class Publisher:
-    def __init__(self, node: OutNode, topic: str, message_class: PubSubMessage):
+    def __init__(self, node, topic: str, message_class: PubSubMessage):
         self.parent = node
         self.topic = topic
         self.message_class = message_class
@@ -44,7 +43,7 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, node: InNode, topic: str):
+    def __init__(self, node, topic: str):
         self.parent = node
         self.topic = topic
         self.commlib_subscriber = self._create_commlib_subscriber(
@@ -59,8 +58,7 @@ class Subscriber:
 
 
 class RPC_Service:
-    def __init__(self, node: InNode, name: str, message_class: RPCMessage,
-                 on_request):
+    def __init__(self, node, name: str, message_class: RPCMessage, on_request):
         self.parent = node
         self.name = name
         self.on_request = on_request
@@ -82,7 +80,7 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self, node: OutNode, name: str, message_module: RPCMessage):
+    def __init__(self, node, name: str, message_module: RPCMessage):
         self.parent = node
         self.name = name
         self.message_module = message_module
