@@ -36,7 +36,7 @@ OutPort:
 Publisher:
     '- publisher:'
         'topic:' topic=FQN
-        'message:' object=[idl.PubSubMessage]
+        ('message:' object=[idl.PubSubMessage])?
 ;
 
 RPC_Client:
@@ -59,7 +59,7 @@ RPC_Service:
 ;
 
 FuncNode:
-    Bridge
+    Bridge | Proxy
 ;
 
 Bridge:
@@ -77,6 +77,15 @@ RPCBridge:
     'RPCBridge' name=ID '{'
         brokerA=[bdsl.Broker] '(' nameA=ID ')' '-'
         brokerB=[bdsl.Broker] '(' nameB=ID ')'
+    '}'
+;
+
+Proxy:
+    'Proxy' name=ID '{'
+        'inport:' inport=Subscriber
+        'outport:' outport=Publisher
+        'url:' url=STRING
+        'broker:' broker=[bdsl.Broker]
     '}'
 ;
 

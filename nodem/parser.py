@@ -9,11 +9,12 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
+from nodem.nodes import InNode, OutNode
 from nodem.logic import default_on_request
+from nodem.bridges import TopicBridge, RPCBridge
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
-from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
-                            InNode, OutNode, TopicBridge, RPCBridge)
+from nodem.entities import Broker, Publisher, Subscriber, RPC_Service, RPC_Client
 
 
 class NodesHandler:
@@ -24,6 +25,7 @@ class NodesHandler:
         self.out_nodes = []
         self.topic_bridges = []
         self.rpc_bridges = []
+        self.proxies = []
         # service entities lists
         self.publishers = []
         self.subscribers = []
@@ -185,7 +187,11 @@ class NodesHandler:
             from_topic = topic_bridge_model.fromTopic
             to_topic = topic_bridge_model.toTopic
 
-            bridge = TopicBridge(name, brokerA, brokerB, from_topic, to_topic)
+            bridge = TopicBridge(name=name,
+                                 brokerA=brokerA,
+                                 brokerB=brokerB,
+                                 from_topic=from_topic,
+                                 to_topic=to_topic)
             self.topic_bridges.append(bridge)
 
     def parse_rpc_bridges(self):
@@ -199,17 +205,22 @@ class NodesHandler:
             nameA = rpc_bridge_model.nameA
             nameB = rpc_bridge_model.nameB
 
-            bridge = RPCBridge(name, brokerA, brokerB, nameA, nameB)
+            bridge = RPCBridge(name=name,
+                               brokerA=brokerA,
+                               brokerB=brokerB,
+                               nameA=nameA,
+                               nameB=nameB)
             self.rpc_bridges.append(bridge)
 
-    def get_node_by_name(self, node_name, node_type):
+    def get_node_by_name(self, node_name: str, node_type: str) -> (InNode, OutNode):
         nodes = self.in_nodes if node_type == 'in' else self.out_nodes
         return get_first(nodes, 'name', node_name)
 
-    def get_broker_by_name(self, broker_name):
+    def get_broker_by_name(self, broker_name: str) -> Broker:
         return get_first(self.brokers, 'name', broker_name)
 
-    def get_bridge_by_name(self, bridge_name, bridge_type):
+    def get_bridge_by_name(self, bridge_name: str,
+                           bridge_type: str) -> (TopicBridge, RPCBridge):
         bridges = self.topic_bridges if bridge_type == 'topic' else self.rpc_bridges
         return get_first(bridges, 'name', bridge_name)
 

@@ -43,6 +43,13 @@ InNode ACDevice{
     broker: R4ABroker
 }
 
-Bridge R4A2MyRab{
-    R4ABroker(thermo.humidity)-MyRabbit(thermo.humidity)
+Proxy testProxy{
+    inport: 
+        - subscriber:
+            topic: new.data
+    outport:
+        - publisher:
+            topic: collected.data
+    url: "http://localhost:8000"
+    broker: R4ABroker
 }
