@@ -7,7 +7,7 @@ Broker: MyRabbit
 OutNode thermoSensor{
     ports:
         - publisher:
-            topic: thermo.temp
+            topic: test.me.node
             message: ThermoSensorMsg
         - publisher:
             topic: thermo.humidity
@@ -40,6 +40,16 @@ InNode ACDevice{
             topic: thermo.humidity
         - rpc_service thermoRPC:
             message: ThermoSensorMsgR
+    broker: R4ABroker
+}
+
+BiNode testNode{
+    inport:
+        - subscriber:
+            topic: test.me.node
+    outport:
+        - publisher:
+            topic: test.me.node
     broker: R4ABroker
 }
 

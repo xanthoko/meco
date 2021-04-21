@@ -34,3 +34,14 @@ class OutNode(BaseNode):
 
     def __repr__(self):
         return f'OutNode: {self.name}'
+
+
+class BiNode(BaseNode):
+    def __init__(self, *args, **kwargs):
+        super(BiNode, self).__init__(*args, **kwargs)
+
+        self.subscriber = None
+        self.publisher = None
+
+    def __repr__(self):
+        return f'BiNode {self.name}'

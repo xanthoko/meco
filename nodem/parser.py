@@ -1,5 +1,6 @@
 from importlib import import_module
 
+from commlib.msg import PubSubMessage
 from commlib.node import TransportType
 from comm_idl.generator import GeneratorCommlibPy
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
@@ -9,8 +10,8 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.nodes import InNode, OutNode
 from nodem.logic import default_on_request
+from nodem.nodes import InNode, OutNode, BiNode
 from nodem.bridges import TopicBridge, RPCBridge
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
@@ -23,6 +24,7 @@ class NodesHandler:
         self.brokers = []
         self.in_nodes = []
         self.out_nodes = []
+        self.bi_nodes = []
         self.topic_bridges = []
         self.rpc_bridges = []
         self.proxies = []
@@ -40,6 +42,7 @@ class NodesHandler:
         self.generate_message_modules()
         self.parse_in_nodes()
         self.parse_out_nodes()
+        self.parse_bi_nodes()
         self.parse_topic_bridges()
         self.parse_rpc_bridges()
 
@@ -116,26 +119,6 @@ class NodesHandler:
                                                     'RPC_Service')
             self._create_rpc_services_for_node(rpc_service_models, in_node)
 
-    def parse_out_nodes(self):
-        out_node_models = find_class_objects(self.model.nodes, 'OutNode')
-
-        for out_node_model in out_node_models:
-            broker = get_first(self.brokers, 'name', out_node_model.broker.name)
-
-            # --- node ---
-            out_node = OutNode(out_node_model.name, broker)
-            self.out_nodes.append(out_node)
-
-            # --- publishers ---
-            publisher_models = find_class_objects(out_node_model.outports,
-                                                  'Publisher')
-            self._create_publishers_for_node(publisher_models, out_node)
-
-            # --- rpc_clients ---
-            rpc_client_models = find_class_objects(out_node_model.outports,
-                                                   'RPC_Client')
-            self._create_rpc_clients_for_node(rpc_client_models, out_node)
-
     def _create_subscribers_for_node(self, subscriber_models, in_node: InNode):
         for subscriber_model in subscriber_models:
             topic = subscriber_model.topic
@@ -156,6 +139,26 @@ class NodesHandler:
             in_node.rpc_services.append(rpc_service)
             self.rpc_services.append(rpc_service)
 
+    def parse_out_nodes(self):
+        out_node_models = find_class_objects(self.model.nodes, 'OutNode')
+
+        for out_node_model in out_node_models:
+            broker = get_first(self.brokers, 'name', out_node_model.broker.name)
+
+            # --- node ---
+            out_node = OutNode(out_node_model.name, broker)
+            self.out_nodes.append(out_node)
+
+            # --- publishers ---
+            publisher_models = find_class_objects(out_node_model.outports,
+                                                  'Publisher')
+            self._create_publishers_for_node(publisher_models, out_node)
+
+            # --- rpc_clients ---
+            rpc_client_models = find_class_objects(out_node_model.outports,
+                                                   'RPC_Client')
+            self._create_rpc_clients_for_node(rpc_client_models, out_node)
+
     def _create_publishers_for_node(self, publisher_models, out_node: OutNode):
         pubsub_msg_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
@@ -175,6 +178,38 @@ class NodesHandler:
 
             out_node.rpc_clients.append(rpc_client)
             self.rpc_clients.append(rpc_client)
+
+    def parse_bi_nodes(self):
+        bi_node_models = find_class_objects(self.model.nodes, 'BiNode')
+
+        for bi_node_model in bi_node_models:
+            broker = get_first(self.brokers, 'name', bi_node_model.broker.name)
+
+            # --- node ---
+            bi_node = BiNode(bi_node_model.name, broker)
+            self.bi_nodes.append(bi_node)
+
+            # --- subscriber --
+            subscriber_model = bi_node_model.inport
+            topic = subscriber_model.topic
+            subscriber = Subscriber(bi_node, topic)
+            bi_node.subscriber = subscriber
+            self.subscribers.append(subscriber)
+
+            # --- publisher ---
+            publisher_model = bi_node_model.outport
+            pubsub_msg_module = import_module('nodem.msgs.pubsub')
+            try:
+                pubsub_message = getattr(pubsub_msg_module,
+                                         publisher_model.object.name)
+            except AttributeError:
+                pubsub_message = PubSubMessage
+
+            topic = publisher_model.topic
+            publisher = Publisher(bi_node, topic, pubsub_message)
+
+            bi_node.publisher = publisher
+            self.publishers.append(publisher)
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
@@ -212,8 +247,14 @@ class NodesHandler:
                                nameB=nameB)
             self.rpc_bridges.append(bridge)
 
-    def get_node_by_name(self, node_name: str, node_type: str) -> (InNode, OutNode):
-        nodes = self.in_nodes if node_type == 'in' else self.out_nodes
+    def get_node_by_name(self, node_name: str,
+                         node_type: str) -> (InNode, OutNode, BiNode):
+        if node_type == 'in':
+            nodes = self.in_nodes
+        elif node_type == 'out':
+            nodes = self.out_nodes
+        else:
+            nodes = self.bi_nodes
         return get_first(nodes, 'name', node_name)
 
     def get_broker_by_name(self, broker_name: str) -> Broker:
@@ -227,3 +268,4 @@ class NodesHandler:
 
 if __name__ == '__main__':
     a = NodesHandler()
+    b = a.bi_nodes[0]

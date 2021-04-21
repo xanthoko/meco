@@ -1,3 +1,5 @@
+from typing import Optional
+
 from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
@@ -20,7 +22,10 @@ class Broker:
 
 
 class Publisher:
-    def __init__(self, node, topic: str, message_class: PubSubMessage):
+    def __init__(self,
+                 node,
+                 topic: str,
+                 message_class: Optional[PubSubMessage] = None):
         self.parent = node
         self.topic = topic
         self.message_class = message_class
@@ -43,15 +48,16 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, node, topic: str):
+    def __init__(self, node, topic: str, on_message=None):
         self.parent = node
         self.topic = topic
         self.commlib_subscriber = self._create_commlib_subscriber(
-            topic, node.commlib_node)
+            topic, node.commlib_node, on_message)
 
-    def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode):
-        return commlib_node.create_subscriber(topic=topic,
-                                              on_message=default_on_message)
+    def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode,
+                                   on_message):
+        on_message = on_message or default_on_message
+        return commlib_node.create_subscriber(topic=topic, on_message=on_message)
 
     def __repr__(self):
         return f'Subscriber of: {self.parent}'

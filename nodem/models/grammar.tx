@@ -12,7 +12,7 @@ Broker:
 ;
 
 Node:
-    InNode | OutNode | FuncNode
+    InNode | OutNode | BiNode | FuncNode
 ;
 
 InNode:
@@ -26,6 +26,14 @@ OutNode:
     'OutNode' name=ID '{'
         ('ports:' outports*=OutPort
         'broker:' broker=[bdsl.Broker])#
+    '}'
+;
+
+BiNode:
+    'BiNode' name=ID '{'
+        'inport:' inport=Subscriber
+        'outport:' outport=Publisher
+        'broker:' broker=[bdsl.Broker]
     '}'
 ;
 
