@@ -101,6 +101,8 @@ class NodesHandler:
             f.write(text)
 
     def parse_in_nodes(self):
+        """For each InNode model creates the Node, its subscribers and its rpc
+        clients."""
         in_node_models = find_class_objects(self.model.nodes, 'InNode')
 
         for in_node_model in in_node_models:
@@ -121,11 +123,8 @@ class NodesHandler:
 
     def _create_subscribers_for_node(self, subscriber_models, in_node: InNode):
         for subscriber_model in subscriber_models:
-            topic = subscriber_model.topic
-            subscriber = Subscriber(in_node, topic)
-
+            subscriber = self._create_subscriber_entity(subscriber_model, in_node)
             in_node.subscribers.append(subscriber)
-            self.subscribers.append(subscriber)
 
     def _create_rpc_services_for_node(self, rpc_service_models, in_node: InNode):
         rpc_msg_module = import_module('nodem.msgs.rpc')
@@ -140,6 +139,8 @@ class NodesHandler:
             self.rpc_services.append(rpc_service)
 
     def parse_out_nodes(self):
+        """For each OutNode model creates the Node, its publishers and its rpc
+        services."""
         out_node_models = find_class_objects(self.model.nodes, 'OutNode')
 
         for out_node_model in out_node_models:
@@ -162,13 +163,9 @@ class NodesHandler:
     def _create_publishers_for_node(self, publisher_models, out_node: OutNode):
         pubsub_msg_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
-            topic = publisher_model.topic
-            # message class is an attribute of message module
-            pubsub_message = getattr(pubsub_msg_module, publisher_model.object.name)
-            publisher = Publisher(out_node, topic, pubsub_message)
-
+            publisher = self._create_publisher_entity(publisher_model, out_node,
+                                                      pubsub_msg_module)
             out_node.publishers.append(publisher)
-            self.publishers.append(publisher)
 
     def _create_rpc_clients_for_node(self, rpc_client_models, out_node: OutNode):
         rpc_msg_module = import_module('nodem.msgs.rpc')
@@ -180,6 +177,10 @@ class NodesHandler:
             self.rpc_clients.append(rpc_client)
 
     def parse_bi_nodes(self):
+        """For each BiNode models creates the Node, its publisher and its
+        subscriber.
+        
+        BiNode has 1 publisher and 1 subscriber"""
         bi_node_models = find_class_objects(self.model.nodes, 'BiNode')
 
         for bi_node_model in bi_node_models:
@@ -191,25 +192,32 @@ class NodesHandler:
 
             # --- subscriber --
             subscriber_model = bi_node_model.inport
-            topic = subscriber_model.topic
-            subscriber = Subscriber(bi_node, topic)
+            subscriber = self._create_subscriber_entity(subscriber_model, bi_node)
             bi_node.subscriber = subscriber
-            self.subscribers.append(subscriber)
 
             # --- publisher ---
             publisher_model = bi_node_model.outport
             pubsub_msg_module = import_module('nodem.msgs.pubsub')
-            try:
-                pubsub_message = getattr(pubsub_msg_module,
-                                         publisher_model.object.name)
-            except AttributeError:
-                pubsub_message = PubSubMessage
-
-            topic = publisher_model.topic
-            publisher = Publisher(bi_node, topic, pubsub_message)
-
+            publisher = self._create_publisher_entity(publisher_model, bi_node,
+                                                      pubsub_msg_module)
             bi_node.publisher = publisher
-            self.publishers.append(publisher)
+
+    def _create_publisher_entity(self, publisher_model, node, msg_module):
+        topic = publisher_model.topic
+        # message class is an attribute of message module
+        try:
+            pubsub_message = getattr(msg_module, publisher_model.object.name)
+        except AttributeError:
+            pubsub_message = PubSubMessage
+        publisher = Publisher(node, topic, pubsub_message)
+        self.publishers.append(publisher)
+        return publisher
+
+    def _create_subscriber_entity(self, subscriber_model, node):
+        topic = subscriber_model.topic
+        subscriber = Subscriber(node, topic)
+        self.subscribers.append(subscriber)
+        return subscriber
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
