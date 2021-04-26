@@ -1,3 +1,4 @@
+import requests
 from importlib import import_module
 
 from commlib.msg import PubSubMessage
@@ -10,12 +11,13 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.logic import default_on_request
 from nodem.nodes import InNode, OutNode, BiNode
 from nodem.bridges import TopicBridge, RPCBridge
+from nodem.logic import default_on_request, GenericDictMsg
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
-from nodem.entities import Broker, Publisher, Subscriber, RPC_Service, RPC_Client
+from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
+                            Proxy)
 
 
 class NodesHandler:
@@ -45,6 +47,7 @@ class NodesHandler:
         self.parse_bi_nodes()
         self.parse_topic_bridges()
         self.parse_rpc_bridges()
+        self.parse_proxies()
 
     def parse_broker_connections(self):
         """Parses the broker models and creates Broker entities with their
@@ -161,10 +164,8 @@ class NodesHandler:
             self._create_rpc_clients_for_node(rpc_client_models, out_node)
 
     def _create_publishers_for_node(self, publisher_models, out_node: OutNode):
-        pubsub_msg_module = import_module('nodem.msgs.pubsub')
         for publisher_model in publisher_models:
-            publisher = self._create_publisher_entity(publisher_model, out_node,
-                                                      pubsub_msg_module)
+            publisher = self._create_publisher_entity(publisher_model, out_node)
             out_node.publishers.append(publisher)
 
     def _create_rpc_clients_for_node(self, rpc_client_models, out_node: OutNode):
@@ -179,7 +180,7 @@ class NodesHandler:
     def parse_bi_nodes(self):
         """For each BiNode models creates the Node, its publisher and its
         subscriber.
-        
+
         BiNode has 1 publisher and 1 subscriber"""
         bi_node_models = find_class_objects(self.model.nodes, 'BiNode')
 
@@ -197,12 +198,11 @@ class NodesHandler:
 
             # --- publisher ---
             publisher_model = bi_node_model.outport
-            pubsub_msg_module = import_module('nodem.msgs.pubsub')
-            publisher = self._create_publisher_entity(publisher_model, bi_node,
-                                                      pubsub_msg_module)
+            publisher = self._create_publisher_entity(publisher_model, bi_node)
             bi_node.publisher = publisher
 
-    def _create_publisher_entity(self, publisher_model, node, msg_module):
+    def _create_publisher_entity(self, publisher_model, node):
+        msg_module = import_module('nodem.msgs.pubsub')
         topic = publisher_model.topic
         # message class is an attribute of message module
         try:
@@ -213,15 +213,16 @@ class NodesHandler:
         self.publishers.append(publisher)
         return publisher
 
-    def _create_subscriber_entity(self, subscriber_model, node):
+    def _create_subscriber_entity(self, subscriber_model, node, on_message=None):
         topic = subscriber_model.topic
-        subscriber = Subscriber(node, topic)
+        subscriber = Subscriber(node, topic, on_message)
         self.subscribers.append(subscriber)
         return subscriber
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
-        topic_bridge_models = find_class_objects(self.model.nodes, 'TopicBridge')
+        topic_bridge_models = find_class_objects(self.model.functions,
+                                                 'TopicBridge')
 
         for topic_bridge_model in topic_bridge_models:
             name = topic_bridge_model.name
@@ -239,7 +240,7 @@ class NodesHandler:
 
     def parse_rpc_bridges(self):
         """An rpc bridge connects BrokerA(nameA) -> BrokerB(nameB)"""
-        rpc_bridge_models = find_class_objects(self.model.nodes, 'RPCBridge')
+        rpc_bridge_models = find_class_objects(self.model.functions, 'RPCBridge')
 
         for rpc_bridge_model in rpc_bridge_models:
             name = rpc_bridge_model.name
@@ -254,6 +255,37 @@ class NodesHandler:
                                nameA=nameA,
                                nameB=nameB)
             self.rpc_bridges.append(bridge)
+
+    def parse_proxies(self):
+        """A proxy makes a GET request to the given url and publishes the
+        response."""
+        proxy_models = find_class_objects(self.model.functions, 'Proxy')
+
+        for proxy_model in proxy_models:
+            broker = get_first(self.brokers, 'name', proxy_model.broker.name)
+            name = proxy_model.name
+            url = proxy_model.url
+
+            bi_node = BiNode(name, broker)
+            publisher = self._create_publisher_entity(proxy_model.outport, bi_node)
+
+            def make_get_request(msg, url=url, publisher=publisher):
+                resp = requests.get(url)
+                if status_code := resp.status_code != 200:
+                    print(f'[ERROR] Response was {status_code}')
+
+                generic_msg = GenericDictMsg(resp.json())
+                publisher.publish(generic_msg)
+
+            # create the bi node and endpoints
+            subscriber = self._create_subscriber_entity(proxy_model.inport, bi_node,
+                                                        make_get_request)
+            bi_node.subscriber = subscriber
+            bi_node.publisher = publisher
+
+            # create the proxy entity
+            proxy = Proxy(name, url, broker, bi_node)
+            self.proxies.append(proxy)
 
     def get_node_by_name(self, node_name: str,
                          node_type: str) -> (InNode, OutNode, BiNode):
@@ -273,7 +305,14 @@ class NodesHandler:
         bridges = self.topic_bridges if bridge_type == 'topic' else self.rpc_bridges
         return get_first(bridges, 'name', bridge_name)
 
+    def get_proxy_by_name(self, proxy_name: str) -> Proxy:
+        return get_first(self.proxies, 'name', proxy_name)
+
 
 if __name__ == '__main__':
     a = NodesHandler()
-    b = a.bi_nodes[0]
+    pext = a.get_node_by_name('Give', 'out').publishers[0]
+    sext = a.get_node_by_name('Take', 'in').subscribers[0]
+    sext.run()
+    p = a.proxies[0]
+    p.node.subscriber.run()

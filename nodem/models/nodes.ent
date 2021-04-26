@@ -4,52 +4,18 @@ import brokers.br;
 Broker: R4ABroker
 Broker: MyRabbit
 
-OutNode thermoSensor{
+InNode Take{
+    ports:
+        - subscriber:
+            topic: collected.data
+    broker: R4ABroker
+}
+
+OutNode Give{
     ports:
         - publisher:
-            topic: test.me.node
+            topic: new.data
             message: ThermoSensorMsg
-        - publisher:
-            topic: thermo.humidity
-            message: ThermoSensorMsg2
-        - rpc_client thermoRPC:
-            message: ThermoSensorMsgR
-    broker: R4ABroker
-}
-
-OutNode sonarSensor{
-    ports:
-        - publisher:
-            topic: sonar.data
-            message: SonarSensorMsg
-        - rpc_client sonarRPC:
-            message: SonarSensorMsgR
-    broker: R4ABroker
-}
-
-InNode TV{
-    ports:
-        - subscriber:
-            topic: s.s
-    broker: R4ABroker
-}
-
-InNode ACDevice{
-    ports:
-        - subscriber:
-            topic: thermo.humidity
-        - rpc_service thermoRPC:
-            message: ThermoSensorMsgR
-    broker: R4ABroker
-}
-
-BiNode testNode{
-    inport:
-        - subscriber:
-            topic: test.me.node
-    outport:
-        - publisher:
-            topic: test.me.node
     broker: R4ABroker
 }
 
@@ -60,6 +26,6 @@ Proxy testProxy{
     outport:
         - publisher:
             topic: collected.data
-    url: "http://localhost:8000"
+    url: "http://localhost:8001"
     broker: R4ABroker
 }

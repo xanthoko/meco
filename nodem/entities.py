@@ -1,5 +1,3 @@
-from typing import Optional
-
 from commlib.node import Node as CommNode
 from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
@@ -22,22 +20,16 @@ class Broker:
 
 
 class Publisher:
-    def __init__(self,
-                 node,
-                 topic: str,
-                 message_class: Optional[PubSubMessage] = None):
+    def __init__(self, node, topic: str, message_class: PubSubMessage):
         self.parent = node
         self.topic = topic
         self.message_class = message_class
         self.commlib_publisher = self._create_commlib_publisher(
             topic, message_class, node.commlib_node)
 
-    def publish(self):
-        if self.commlib_publisher:
-            msg = self.message_class()
-            self.commlib_publisher.publish(msg)
-        else:
-            print('[ERROR] Commlib publisher not set.')
+    def publish(self, msg=None):
+        msg = msg or self.message_class()
+        self.commlib_publisher.publish(msg)
 
     def _create_commlib_publisher(self, topic: str, message_module,
                                   commlib_node: CommNode):
@@ -53,6 +45,9 @@ class Subscriber:
         self.topic = topic
         self.commlib_subscriber = self._create_commlib_subscriber(
             topic, node.commlib_node, on_message)
+
+    def run(self):
+        self.commlib_subscriber.run()
 
     def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode,
                                    on_message):
@@ -102,3 +97,14 @@ class RPC_Client:
 
     def __repr__(self):
         return f'RPC Client of {self.parent}'
+
+
+class Proxy:
+    def __init__(self, name: str, url: str, broker: Broker, node):
+        self.name = name
+        self.url = url
+        self.broker = broker
+        self.node = node
+
+    def __repr__(self):
+        return f'Proxy "{self.name} for "{self.url}"'

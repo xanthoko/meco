@@ -5,6 +5,7 @@ Entities:
     imports*=Import
     broker*=Broker
     nodes*=Node
+    functions*=Function
 ;
 
 Broker:
@@ -12,7 +13,7 @@ Broker:
 ;
 
 Node:
-    InNode | OutNode | BiNode | FuncNode
+    InNode | OutNode | BiNode
 ;
 
 InNode:
@@ -66,7 +67,7 @@ RPC_Service:
         'message:' object=[idl.RPCMessage]
 ;
 
-FuncNode:
+Function:
     Bridge | Proxy
 ;
 

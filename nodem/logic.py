@@ -5,6 +5,14 @@ from importlib import import_module
 from nodem.definitions import TEMPLATES_DIR_PATH, MESSAGES_DIR_PATH
 
 
+class GenericDictMsg:
+    def __init__(self, data):
+        self.data = data
+
+    def as_dict(self):
+        return self.data
+
+
 def default_on_message(msg):
     print(f'Message: {msg}')
 
