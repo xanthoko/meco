@@ -10,6 +10,9 @@ class BaseBridge:
         self.brokerA = brokerA
         self.brokerB = brokerB
 
+    def run(self):
+        self.commlib_bridge.run()
+
     def _create_commlib_bridge(self, commlib_bridge_class, bridge_type_class,
                                from_uri: str, to_uri: str):
         bridge_type = getattr(bridge_type_class,

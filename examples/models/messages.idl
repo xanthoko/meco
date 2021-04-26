@@ -1,0 +1,60 @@
+Package {
+  name: msgs
+  description: "Interface Messages"
+  author: "Konstantinos Xanthopoulos"
+}
+
+Object EmptyObject { }
+
+Object Header {
+  timestamp: int
+  id: int
+}
+
+Object thermoProperties {
+  temperature: float
+  humidity: float
+}
+
+Object SonarData {
+  range: float '23232'
+  hfov: float
+  vfov: float '10'
+  sensor_id: str 'sid'
+}
+
+Object ThermoData {
+  temperature: float '12.3'
+  humidity: float
+}
+
+PubSubMessage ThermoSensorMsg {
+  temperature: float
+}
+
+PubSubMessage ThermoSensorMsg2 {
+  temperature: float
+  humidity: float '10'
+}
+
+PubSubMessage SonarSensorMsg {
+  range: float
+  hfov: float
+  vfov: float
+}
+
+RPCMessage SonarSensorMsgR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: SonarData
+  header: Header
+}
+
+RPCMessage ThermoSensorMsgR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: ThermoData
+  header: Header
+}

@@ -67,6 +67,9 @@ class RPC_Service:
         self.commlib_rpc_service = self._create_commlib_rpc_service(
             name, message_class, node.commlib_node, default_on_request)
 
+    def run(self):
+        self.commlib_rpc_service.run()
+
     def _create_commlib_rpc_service(self, name: str, message_module, commlib_node,
                                     on_request):
         return commlib_node.create_rpc(rpc_name=name,
@@ -88,6 +91,9 @@ class RPC_Client:
         self.commlib_rpc_client = self._create_commlib_rpc_client(
             name, message_module, node.commlib_node)
 
+    def call(self, msg):
+        return self.commlib_rpc_client.call(msg)
+
     def _create_commlib_rpc_client(self, name: str, message_module, commlib_node):
         return commlib_node.create_rpc_client(rpc_name=name,
                                               msg_type=message_module)
@@ -104,7 +110,10 @@ class Proxy:
         self.name = name
         self.url = url
         self.broker = broker
-        self.node = node
+        self.node = node  # BiNode
+
+    def run(self):
+        self.node.subscriber.run()
 
     def __repr__(self):
         return f'Proxy "{self.name} for "{self.url}"'

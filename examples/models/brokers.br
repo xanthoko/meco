@@ -1,0 +1,23 @@
+RabbitBroker MyRabbit -> {
+  host: "127.0.0.1";
+  amqp_port: 5672;
+  vhosts: ['/', 'klpanagi'];
+}
+
+RabbitBroker R4ABroker -> {
+  host: "r4a-platform.ddns.net";
+  amqp_port: 5672;
+  vhosts: ['/', 'klpanagi'];
+  users: [('bot', 'b0t')];
+}
+
+RedisBroker MyRedis -> {
+  host: "localhost";
+  port: 6379;
+}
+
+EMQXBroker MyEmqx -> {
+  host: "localhost";
+  port: 1883;
+  users: [('bot', 'b0t'), ('klpanagi', 'klpanagi')];
+}

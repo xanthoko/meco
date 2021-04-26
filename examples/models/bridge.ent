@@ -1,0 +1,32 @@
+import messages.idl;
+import brokers.br;
+
+Broker: R4ABroker
+Broker: MyRedis
+
+OutNode thermoSensor{
+    ports:
+        - publisher:
+            topic: thermo.humidity.data
+            message: ThermoSensorMsg2
+        - rpc_client thermoRPC:
+            message: SonarSensorMsgR
+    broker: R4ABroker
+}
+
+InNode ACDevice{
+    ports:
+        - subscriber:
+            topic: listen.data
+        - rpc_service acRPC:
+            message: SonarSensorMsgR
+    broker: MyRedis
+}
+
+TopicBridge R4A2Redis{
+    R4ABroker(thermo.humidity.data) - MyRedis(listen.data)
+}
+
+RPCBridge R4A2Redis{
+    R4ABroker(thermoRPC) - MyRedis(acRPC)
+}

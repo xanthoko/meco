@@ -1,0 +1,30 @@
+import messages.idl;
+import brokers.br;
+
+Broker: R4ABroker
+
+OutNode thermoSensor{
+    ports:
+        - publisher:
+            topic: thermo.humidity.data
+    broker: R4ABroker
+}
+
+InNode ACDevice{
+    ports:
+        - subscriber:
+            topic: listen.data
+    broker: R4ABroker
+}
+
+Proxy testProxy{
+    inport: 
+        - subscriber:
+            topic: thermo.humidity.data
+    outport:
+        - publisher:
+            topic: listen.data
+    url: "http://localhost:8000"
+    broker: R4ABroker
+}
+

@@ -23,6 +23,7 @@ from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Clie
 class NodesHandler:
     """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent'):
+        # services lists
         self.brokers = []
         self.in_nodes = []
         self.out_nodes = []
@@ -30,7 +31,7 @@ class NodesHandler:
         self.topic_bridges = []
         self.rpc_bridges = []
         self.proxies = []
-        # service entities lists
+        # endpoints lists
         self.publishers = []
         self.subscribers = []
         self.rpc_services = []
@@ -310,9 +311,10 @@ class NodesHandler:
 
 
 if __name__ == '__main__':
-    a = NodesHandler()
-    pext = a.get_node_by_name('Give', 'out').publishers[0]
-    sext = a.get_node_by_name('Take', 'in').subscribers[0]
-    sext.run()
-    p = a.proxies[0]
-    p.node.subscriber.run()
+    # a = NodesHandler()
+    # pext = a.get_node_by_name('Give', 'out').publishers[0]
+    # sext = a.get_node_by_name('Take', 'in').subscribers[0]
+    # sext.run()
+    # p = a.proxies[0]
+    # p.node.subscriber.run()
+    m = build_model('../examples/models/example.ent')
