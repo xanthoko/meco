@@ -94,8 +94,14 @@ Proxy:
         'inport:' inport=Subscriber
         'outport:' outport=Publisher
         'url:' url=STRING
+        'method:' method=RequestMethods
+        ('body:' body=[idl.Object])?
         'broker:' broker=[bdsl.Broker]
     '}'
+;
+
+RequestMethods:
+    'GET' | 'POST'
 ;
 
 FQN: ID+['.'];

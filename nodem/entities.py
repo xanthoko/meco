@@ -106,9 +106,10 @@ class RPC_Client:
 
 
 class Proxy:
-    def __init__(self, name: str, url: str, broker: Broker, node):
+    def __init__(self, name: str, url: str, method: str, broker: Broker, node):
         self.name = name
         self.url = url
+        self.method = method
         self.broker = broker
         self.node = node  # BiNode
 

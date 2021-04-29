@@ -27,5 +27,6 @@ Proxy testProxy{
         - publisher:
             topic: collected.data
     url: "http://localhost:8001"
+    method: GET
     broker: R4ABroker
 }

@@ -14,10 +14,10 @@ from commlib.transports.redis import (ConnectionParameters as redisParams,
 from nodem.nodes import InNode, OutNode, BiNode
 from nodem.bridges import TopicBridge, RPCBridge
 from nodem.logic import default_on_request, GenericDictMsg
-from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
                             Proxy)
+from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
 class NodesHandler:
@@ -258,34 +258,46 @@ class NodesHandler:
             self.rpc_bridges.append(bridge)
 
     def parse_proxies(self):
-        """A proxy makes a GET request to the given url and publishes the
-        response."""
+        """A proxy makes a request to the given url and publishes the response."""
         proxy_models = find_class_objects(self.model.functions, 'Proxy')
 
         for proxy_model in proxy_models:
             broker = get_first(self.brokers, 'name', proxy_model.broker.name)
             name = proxy_model.name
             url = proxy_model.url
+            method = proxy_model.method
 
             bi_node = BiNode(name, broker)
             publisher = self._create_publisher_entity(proxy_model.outport, bi_node)
 
-            def make_get_request(msg, url=url, publisher=publisher):
-                resp = requests.get(url)
+            def make_request(msg, method=method, url=url, publisher=publisher):
+                if method.upper() == 'GET':
+                    resp = requests.get(url)
+                elif method.upper() == 'POST':
+                    if body_model := proxy_model.body:
+                        data = {
+                            x.name: typecasted_value(x)
+                            for x in body_model.properties
+                        }
+                    else:
+                        data = {}
+                    # TODO: test in a "real" API
+                    resp = requests.post(url, data=data)
+
                 if status_code := resp.status_code != 200:
                     print(f'[ERROR] Response was {status_code}')
+                    return
 
                 generic_msg = GenericDictMsg(resp.json())
                 publisher.publish(generic_msg)
 
-            # create the bi node and endpoints
             subscriber = self._create_subscriber_entity(proxy_model.inport, bi_node,
-                                                        make_get_request)
+                                                        make_request)
             bi_node.subscriber = subscriber
             bi_node.publisher = publisher
 
             # create the proxy entity
-            proxy = Proxy(name, url, broker, bi_node)
+            proxy = Proxy(name, url, method, broker, bi_node)
             self.proxies.append(proxy)
 
     def get_node_by_name(self, node_name: str,
@@ -311,10 +323,4 @@ class NodesHandler:
 
 
 if __name__ == '__main__':
-    # a = NodesHandler()
-    # pext = a.get_node_by_name('Give', 'out').publishers[0]
-    # sext = a.get_node_by_name('Take', 'in').subscribers[0]
-    # sext.run()
-    # p = a.proxies[0]
-    # p.node.subscriber.run()
-    m = build_model('../examples/models/example.ent')
+    a = NodesHandler()
