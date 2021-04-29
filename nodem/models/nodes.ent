@@ -1,32 +1,45 @@
 import messages.idl;
 import brokers.br;
 
-Broker: R4ABroker
+Broker: R4ABroker (default)
 Broker: MyRabbit
 
-InNode Take{
-    ports:
+Node Take{
+    inports:
         - subscriber:
             topic: collected.data
-    broker: R4ABroker
+    outports:
+        - rpc_client testRPC:
+            message: SonarSensorMsgR
 }
 
-OutNode Give{
-    ports:
+Node Give{
+    outports:
         - publisher:
             topic: new.data
             message: ThermoSensorMsg
-    broker: R4ABroker
+    inports:
+        - rpc_service testRPC:
+            message: SonarSensorMsgR
+    broker: MyRabbit
+}
+
+TopicBridge MR2R4A{
+    MyRabbit(new.data) - R4ABroker(collected.data)
+}
+
+RPCBridge R4A2MR{
+    R4ABroker(testRPC) - MyRabbit(testRPC)
 }
 
 Proxy testProxy{
-    inport: 
+    inport:
         - subscriber:
-            topic: new.data
+            topic: pp.pp
     outport:
         - publisher:
-            topic: collected.data
-    url: "http://localhost:8001"
+            topic: pp.pp
+    url: "http://localhost:8000"
     method: GET
     broker: R4ABroker
 }

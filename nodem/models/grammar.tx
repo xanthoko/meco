@@ -3,38 +3,21 @@ reference broker_dsl as bdsl
 
 Entities:
     imports*=Import
-    broker*=Broker
+    brokers+=Broker
     nodes*=Node
-    functions*=Function
+    bridges*=Bridge
+    proxies*=Proxy
 ;
 
 Broker:
-    'Broker: ' broker=[bdsl.Broker]
+    'Broker: ' broker=[bdsl.Broker] (default='(default)')?
 ;
 
 Node:
-    InNode | OutNode | BiNode
-;
-
-InNode:
-    'InNode' name=ID '{'
-        ('ports:' inports*=InPort
-        'broker:' broker=[bdsl.Broker])#
-    '}'
-;
-
-OutNode:
-    'OutNode' name=ID '{'
-        ('ports:' outports*=OutPort
-        'broker:' broker=[bdsl.Broker])#
-    '}'
-;
-
-BiNode:
-    'BiNode' name=ID '{'
-        'inport:' inport=Subscriber
-        'outport:' outport=Publisher
-        'broker:' broker=[bdsl.Broker]
+    'Node' name=ID '{'
+        (('inports:' inports*=InPort)?
+        ('outports:' outports*=OutPort)?
+        ('broker:' broker=[bdsl.Broker])?)#
     '}'
 ;
 
@@ -65,10 +48,6 @@ Subscriber:
 RPC_Service:
     '- rpc_service' name=ID ':'
         'message:' object=[idl.RPCMessage]
-;
-
-Function:
-    Bridge | Proxy
 ;
 
 Bridge:
