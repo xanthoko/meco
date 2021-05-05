@@ -1,13 +1,16 @@
 import messages.idl;
 import brokers.br;
 
-Broker: R4ABroker (default)
 Broker: MyRabbit
+Broker: R4ABroker (default)
+Broker: MyRedis
 
 Node Take{
     inports:
         - subscriber:
             topic: collected.data
+        - subscriber:
+            topic: orphan.topic
     outports:
         - rpc_client testRPC:
             message: SonarSensorMsgR
@@ -17,7 +20,10 @@ Node Give{
     outports:
         - publisher:
             topic: new.data
-            message: ThermoSensorMsg
+            message: SonarSensorMsg
+        - publisher:
+            topic: orphan.topic.A
+            message: ThermoSensorMsg2
     inports:
         - rpc_service testRPC:
             message: SonarSensorMsgR
@@ -28,6 +34,14 @@ TopicBridge MR2R4A{
     MyRabbit(new.data) - R4ABroker(collected.data)
 }
 
+TopicBridge R4A2MR{
+    R4ABroker(new.data) - MyRabbit(collected.data)
+}
+
+TopicBridge MRab2R4A{
+    MyRedis(temp) - R4ABroker(temp)
+}
+
 RPCBridge R4A2MR{
     R4ABroker(testRPC) - MyRabbit(testRPC)
 }
@@ -35,10 +49,10 @@ RPCBridge R4A2MR{
 Proxy testProxy{
     inport:
         - subscriber:
-            topic: pp.pp
+            topic: proxy.sub
     outport:
         - publisher:
-            topic: pp.pp
+            topic: proxy.pub
     url: "http://localhost:8000"
     method: GET
     broker: R4ABroker

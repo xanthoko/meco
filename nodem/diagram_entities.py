@@ -98,5 +98,8 @@ class Proxy:
         self.method = method
         self.broker = broker
 
+    def as_dict(self):
+        return {'name': self.name, 'method': self.method, 'url': self.url}
+
     def __repr__(self):
         return f'Proxy: "{self.name} at "{self.url}"'

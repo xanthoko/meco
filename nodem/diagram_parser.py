@@ -1,4 +1,8 @@
+from jinja2 import Environment, FileSystemLoader
+
+from nodem.diagram_creator import PlantUMLClient
 from nodem.utils import build_model, get_first, find_class_objects
+from nodem.definitions import TEMPLATES_DIR_PATH, DIAGRAMS_DIR_PATH
 from nodem.diagram_entities import (Broker, Node, Subscriber, Publisher,
                                     RPC_Service, RPC_Client, TopicBridge, RPCBridge,
                                     Proxy)
@@ -6,6 +10,7 @@ from nodem.diagram_entities import (Broker, Node, Subscriber, Publisher,
 
 class NodesHandler:
     def __init__(self, model_path='models/nodes.ent'):
+        self.diagram_creator = PlantUMLClient()
         # services lists
         self.default_broker = None
         self.brokers = []
@@ -21,6 +26,9 @@ class NodesHandler:
 
         self.model = build_model(model_path)
         self.parse_model()
+        # self.make_broker_port_diagrams()
+        # self.make_broker_to_broker_diagram()
+        self.make_md_file()
 
     def parse_model(self):
         self.parse_brokers()
@@ -85,7 +93,13 @@ class NodesHandler:
     def _create_publishers_for_node(self, node_model, node: Node):
         publisher_models = find_class_objects(node_model.outports, 'Publisher')
         for publisher_model in publisher_models:
-            pubsub_message = {}  # define the message model
+            if publisher_model.object:
+                pubsub_message = {
+                    x.name: x.type.name
+                    for x in publisher_model.object.properties
+                }
+            else:
+                pubsub_message = {}
             publisher = Publisher(node, publisher_model.topic, pubsub_message)
 
             self.publishers.append(publisher)
@@ -177,6 +191,138 @@ class NodesHandler:
 
     def get_proxy_by_name(self, proxy_name: str):
         return get_first(self.proxies, 'name', proxy_name)
+
+    def make_broker_port_diagrams(self):
+        """Make diagrams with the topics and rpc names in the input and outport
+        ports of each broker."""
+        file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
+        env = Environment(loader=file_loader)
+        template = env.get_template('broker_conns.tpl')
+
+        # fill the data
+        brokers_data = []
+        for broker in self.brokers:
+            input_topics = [
+                subscriber.topic for node in broker.nodes
+                for subscriber in node.subscribers
+            ]
+            output_topics = [
+                publisher.topic for node in broker.nodes
+                for publisher in node.publishers
+            ]
+            rpc_clients = [
+                client.name for node in broker.nodes for client in node.rpc_clients
+            ]
+            rpc_services = [
+                server.name for node in broker.nodes for server in node.rpc_services
+            ]
+            broker_data = {
+                'name': broker.name,
+                'input_topics': input_topics,
+                'output_topics': output_topics,
+                'rpc_clients': rpc_clients,
+                'rpc_services': rpc_services
+            }
+            brokers_data.append(broker_data)
+
+        # write txt file and make diagram
+        output = template.render(brokers_data=brokers_data)
+        path = DIAGRAMS_DIR_PATH + '/brokers.txt'
+        with open(path, 'w') as f:
+            f.write(output)
+
+        self.diagram_creator.make_diagram(path)
+
+    def make_broker_to_broker_diagram(self):
+        file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
+        env = Environment(loader=file_loader)
+        template = env.get_template('b2b.tpl')
+
+        topic_bridges_data = []
+        for topic_bridge in self.topic_bridges:
+            topic_bridge_data = {
+                'name': topic_bridge.name,
+                'brokerA': topic_bridge.brokerA,
+                'brokerB': topic_bridge.brokerB
+            }
+            topic_bridges_data.append(topic_bridge_data)
+
+        output = template.render(t_bridges=topic_bridges_data)
+        path = DIAGRAMS_DIR_PATH + '/b2b.txt'
+        with open(path, 'w') as f:
+            f.write(output)
+
+        self.diagram_creator.make_diagram(path)
+
+    def make_md_file(self):
+        """Creates a markdown file with the main information about the communication
+        schema.
+
+        The file contains:
+            - Transport type and topics of each broker
+            - Topic and data model of each unused publisher
+            - Topic of each unused subscriber
+        """
+        # ----- brokers -----
+        total_in_topics = []
+        total_out_topics = []
+        brokers_data = []
+        for broker in self.brokers:
+            in_topics = [
+                endpoint.topic for node in broker.nodes
+                for endpoint in node.subscribers
+            ]
+            out_topics = [
+                endpoint.topic for node in broker.nodes
+                for endpoint in node.publishers
+            ]
+            total_in_topics += in_topics
+            total_out_topics += out_topics
+            broker_data = {
+                'name': broker.name,
+                'type': broker.transport_type,
+                'in_topics': in_topics,
+                'out_topics': out_topics
+            }
+            brokers_data.append(broker_data)
+
+        # ----- unused -----
+        unused_publishers = []
+        for publisher in self.publishers:
+            if (topic := publisher.topic) not in total_in_topics:
+                unused_publishers.append({
+                    'topic': topic,
+                    'data_model': publisher.message_schema
+                })
+        unused_subscribers = [
+            x for x in total_in_topics if x not in total_out_topics
+        ]
+
+        # ----- proxies -----
+        proxy_data = []
+        for proxy in self.proxies:
+            proxy_data.append(proxy.as_dict())
+
+        info_data = {
+            'brokers_data': brokers_data,
+            'unused_publishers': unused_publishers,
+            'unused_subscribers': unused_subscribers,
+            'proxies': proxy_data
+        }
+        output_path = DIAGRAMS_DIR_PATH + '/info.md'
+
+        _write_template_to_file('md_info.tpl', info_data, output_path)
+
+
+def _write_template_to_file(template_name: str, template_data: dict,
+                            output_path: str):
+    file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
+    env = Environment(loader=file_loader)
+    template = env.get_template(template_name)
+
+    output = template.render(**template_data)
+    with open(output_path, 'w') as f:
+        f.write(output)
 
 
 if __name__ == '__main__':
