@@ -24,9 +24,13 @@ Node Give{
         - publisher:
             topic: orphan.topic.A
             message: ThermoSensorMsg2
+        - rpc_client randomRPC:
+            message: SonarSensorMsgR
     inports:
         - rpc_service testRPC:
             message: SonarSensorMsgR
+        - rpc_service secondRPC:
+            message: ThermoSensorMsgR
     broker: MyRabbit
 }
 

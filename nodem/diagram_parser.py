@@ -26,8 +26,9 @@ class NodesHandler:
 
         self.model = build_model(model_path)
         self.parse_model()
-        # self.make_broker_port_diagrams()
+        # self.make_broker_port_diagram()
         # self.make_broker_to_broker_diagram()
+        # self.make_routes_diagram()
         self.make_md_file()
 
     def parse_model(self):
@@ -109,7 +110,13 @@ class NodesHandler:
         rpc_service_models = find_class_objects(node_model.inports, 'RPC_Service')
         for rpc_service_model in rpc_service_models:
             name = rpc_service_model.name
-            rpc_service = RPC_Service(node, name, {})
+            # rpc_model -> object -> response -> data -> type -> properties
+            rpc_message = {
+                x.name: x.type.name
+                for x in
+                rpc_service_model.object.response.properties[0].type.properties
+            }
+            rpc_service = RPC_Service(node, name, rpc_message)
 
             node.rpc_services.append(rpc_service)
             self.rpc_services.append(rpc_service)
@@ -118,7 +125,12 @@ class NodesHandler:
         rpc_client_models = find_class_objects(node_model.outports, 'RPC_Client')
         for rpc_client_model in rpc_client_models:
             name = rpc_client_model.name
-            rpc_client = RPC_Client(node, name, {})
+            rpc_message = {
+                x.name: x.type.name
+                for x in
+                rpc_client_model.object.request.properties[0].type.properties
+            }
+            rpc_client = RPC_Client(node, name, rpc_message)
 
             node.rpc_clients.append(rpc_client)
             self.rpc_clients.append(rpc_client)
@@ -192,7 +204,7 @@ class NodesHandler:
     def get_proxy_by_name(self, proxy_name: str):
         return get_first(self.proxies, 'name', proxy_name)
 
-    def make_broker_port_diagrams(self):
+    def make_broker_port_diagram(self):
         """Make diagrams with the topics and rpc names in the input and outport
         ports of each broker."""
         file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
@@ -254,6 +266,28 @@ class NodesHandler:
 
         self.diagram_creator.make_diagram(path)
 
+    def make_routes_diagram(self):
+        routes = []
+        for publisher in self.publishers:
+            route = [publisher.parent.name, publisher.topic]
+            current_topic = publisher.topic
+            # check if there is a bridge
+            for bridge in self.topic_bridges:
+                if bridge.from_topic == current_topic:
+                    break
+            route.extend([bridge.name, bridge.to_topic])
+            current_topic = bridge.to_topic
+            # check if there is a subscriber that listens to current topic
+            for subscriber in self.subscribers:
+                if subscriber.topic == current_topic:
+                    break
+            route.extend([subscriber.parent.name])
+            print(route)
+            routes.append(route)
+
+        output_path = DIAGRAMS_DIR_PATH + '/n2n.txt'
+        _write_template_to_file('n2n.tpl', {'routes': routes}, output_path)
+
     def make_md_file(self):
         """Creates a markdown file with the main information about the communication
         schema.
@@ -263,11 +297,14 @@ class NodesHandler:
             - Topic and data model of each unused publisher
             - Topic of each unused subscriber
         """
-        # ----- brokers -----
         total_in_topics = []
         total_out_topics = []
+        total_rpc_services = []
+        total_rpc_clients = []
+        # ----- brokers -----
         brokers_data = []
         for broker in self.brokers:
+            # --- topics ---
             in_topics = [
                 endpoint.topic for node in broker.nodes
                 for endpoint in node.subscribers
@@ -276,13 +313,27 @@ class NodesHandler:
                 endpoint.topic for node in broker.nodes
                 for endpoint in node.publishers
             ]
+            # --- rpc names ---
+            rpc_services = [
+                service.name for node in broker.nodes
+                for service in node.rpc_services
+            ]
+            rpc_clients = [
+                client.name for node in broker.nodes for client in node.rpc_clients
+            ]
+            # --- total ---
             total_in_topics += in_topics
             total_out_topics += out_topics
+            total_rpc_services += rpc_services
+            total_rpc_clients += rpc_clients
+
             broker_data = {
                 'name': broker.name,
                 'type': broker.transport_type,
                 'in_topics': in_topics,
-                'out_topics': out_topics
+                'out_topics': out_topics,
+                'rpc_services': rpc_services,
+                'rpc_clients': rpc_clients
             }
             brokers_data.append(broker_data)
 
@@ -297,6 +348,20 @@ class NodesHandler:
         unused_subscribers = [
             x for x in total_in_topics if x not in total_out_topics
         ]
+        unused_rpc_services = []
+        for rpc_service in self.rpc_services:
+            if (rpc_name := rpc_service.name) not in total_rpc_clients:
+                unused_rpc_services.append({
+                    'name': rpc_name,
+                    'data_model': rpc_service.message_schema
+                })
+        unused_rpc_clients = []
+        for rpc_client in self.rpc_clients:
+            if (rpc_name := rpc_client.name) not in total_rpc_services:
+                unused_rpc_clients.append({
+                    'name': rpc_name,
+                    'data_model': rpc_client.message_schema
+                })
 
         # ----- proxies -----
         proxy_data = []
@@ -307,6 +372,8 @@ class NodesHandler:
             'brokers_data': brokers_data,
             'unused_publishers': unused_publishers,
             'unused_subscribers': unused_subscribers,
+            'unused_rpc_services': unused_rpc_services,
+            'unused_rpc_clients': unused_rpc_clients,
             'proxies': proxy_data
         }
         output_path = DIAGRAMS_DIR_PATH + '/info.md'
