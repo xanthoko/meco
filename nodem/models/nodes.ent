@@ -10,6 +10,8 @@ Node Take{
         - subscriber:
             topic: collected.data
         - subscriber:
+            topic: new.data
+        - subscriber:
             topic: orphan.topic
     outports:
         - rpc_client testRPC:
@@ -34,8 +36,14 @@ Node Give{
     broker: MyRabbit
 }
 
+Node Temp{
+    outports:
+        - publisher:
+            topic: collected.data
+}
+
 TopicBridge MR2R4A{
-    MyRabbit(new.data) - R4ABroker(collected.data)
+    MyRabbit(new.data) - R4ABroker(new.data)
 }
 
 TopicBridge R4A2MR{
