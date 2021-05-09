@@ -70,12 +70,12 @@ RPCBridge:
 
 Proxy:
     'Proxy' name=ID '{'
-        'inport:' inport=Subscriber
+        ('inport:' inport=Subscriber
         'outport:' outport=Publisher
         'url:' url=STRING
         'method:' method=RequestMethods
         ('body:' body=[idl.Object])?
-        'broker:' broker=[bdsl.Broker]
+        ('broker:' broker=[bdsl.Broker])?)#
     '}'
 ;
 
