@@ -5,7 +5,7 @@ class Broker:
         self.nodes = []
 
     def __repr__(self):
-        return self.name
+        return f'Broker: {self.name}'
 
     def __str__(self):
         return self.name
@@ -97,6 +97,9 @@ class Proxy:
         self.url = url
         self.method = method
         self.broker = broker
+
+        self.subscriber = None
+        self.publisher = None
 
     def as_dict(self):
         return {'name': self.name, 'method': self.method, 'url': self.url}

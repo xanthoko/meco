@@ -2,6 +2,7 @@ import messages.idl;
 import brokers.br;
 
 Broker: MyRabbit
+Broker: MyRedis
 Broker: R4ABroker (default)
 
 Node ProxyTake1{
@@ -11,12 +12,18 @@ Node ProxyTake1{
     outports:
         - rpc_client tempRPC:
             message: SonarSensorMsgR
+        - publisher:
+            topic: temp.topic
 }
 
 Node ProxyGive1{
     outports:
         - publisher:
             topic: proxy.sub
+            message: SonarSensorMsg
+    inports:
+        - subscriber:
+            topic: temp.topic
 }
 
 Node BridgeGive1{
@@ -51,6 +58,10 @@ TopicBridge MixedBridge1{
 
 TopicBridge Bridge1{
     R4ABroker(bridge.pub) - MyRabbit(bridge.sub)
+}
+
+RPCBridge rpcBridge1{
+    MyRedis(popo) - MyRabbit(popo2)
 }
 
 Proxy testProxy{

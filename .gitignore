@@ -3,4 +3,5 @@
 
 nodem_xanthoko.egg-info/*
 nodem/msgs
-nodem/diagrams
+nodem/plantuml_models
+nodem/outputs

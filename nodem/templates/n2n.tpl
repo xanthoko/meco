@@ -1,4 +1,6 @@
 @startuml
+{% for node in nodes %}
+    node {{ node }}{% endfor %}
 {% for route in routes %}
-{% endfor %}
+    {{ route.nodes[0] }} ..> {{ route.nodes[1] }} : {{ route.topic }}{% endfor %}
 @enduml

@@ -1,7 +1,10 @@
 @startuml
-{% for t_bridge in t_bridges %}
-    hexagon {{ t_bridge.name }}
-    [{{ t_bridge.brokerA }}] -> {{ t_bridge.name }}
-    {{ t_bridge.name }} -> [{{ t_bridge.brokerB }}]
+{% for bridge in bridges %}
+    queue {{ bridge.brokerA }}
+    queue {{ bridge.brokerB }}
+    hexagon {{ bridge.name }}
+
+    {{ bridge.brokerA }} -> {{ bridge.name }}
+    {{ bridge.name }} -> {{ bridge.brokerB }}
 {% endfor %}
 @enduml

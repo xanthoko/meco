@@ -2,7 +2,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from nodem.diagram_creator import PlantUMLClient
 from nodem.utils import build_model, get_first, find_class_objects
-from nodem.definitions import TEMPLATES_DIR_PATH, DIAGRAMS_DIR_PATH
+from nodem.definitions import (TEMPLATES_DIR_PATH, PLANTUML_MODELS_DIR_PATH,
+                               OUTPUTS_DIR_PATH)
 from nodem.diagram_entities import (Broker, Node, Subscriber, Publisher,
                                     RPC_Service, RPC_Client, TopicBridge, RPCBridge,
                                     Proxy)
@@ -27,8 +28,8 @@ class NodesHandler:
         self.model = build_model(model_path)
         self.parse_model()
         # self.make_broker_port_diagram()
-        # self.make_broker_to_broker_diagram()
-        # self.make_routes_diagram()
+        self.make_broker_to_broker_diagram()
+        self.make_routes_diagram()
         self.make_md_file()
 
     def parse_model(self):
@@ -179,9 +180,20 @@ class NodesHandler:
             name = proxy_model.name
             url = proxy_model.url
             method = proxy_model.method
-            broker = get_first(self.brokers, 'name', proxy_model.broker.name)
+            if proxy_model.broker:
+                broker = get_first(self.brokers, 'name', proxy_model.broker.name)
+            else:
+                broker = self.default_broker
 
             proxy = Proxy(name, url, method, broker)
+            subscriber = Subscriber(proxy, proxy_model.inport.topic)
+            publisher = Publisher(proxy, proxy_model.outport.topic, {})
+
+            proxy.subscriber = subscriber
+            proxy.publisher = publisher
+
+            self.subscribers.append(subscriber)
+            self.publishers.append(publisher)
             self.proxies.append(proxy)
 
     def get_node_by_name(self, node_name: str, node_type: str):
@@ -239,7 +251,7 @@ class NodesHandler:
 
         # write txt file and make diagram
         output = template.render(brokers_data=brokers_data)
-        path = DIAGRAMS_DIR_PATH + '/brokers.txt'
+        path = PLANTUML_MODELS_DIR_PATH + '/brokers.txt'
         with open(path, 'w') as f:
             f.write(output)
 
@@ -250,52 +262,99 @@ class NodesHandler:
         env = Environment(loader=file_loader)
         template = env.get_template('b2b.tpl')
 
-        topic_bridges_data = []
-        for topic_bridge in self.topic_bridges:
+        bridges_data = []
+        for topic_bridge in self.topic_bridges + self.rpc_bridges:
             topic_bridge_data = {
                 'name': topic_bridge.name,
                 'brokerA': topic_bridge.brokerA,
                 'brokerB': topic_bridge.brokerB
             }
-            topic_bridges_data.append(topic_bridge_data)
+            bridges_data.append(topic_bridge_data)
 
-        output = template.render(t_bridges=topic_bridges_data)
-        path = DIAGRAMS_DIR_PATH + '/b2b.txt'
-        with open(path, 'w') as f:
+        output = template.render(bridges=bridges_data)
+        plantuml_model_path = PLANTUML_MODELS_DIR_PATH + '/b2b.txt'
+        output_path = OUTPUTS_DIR_PATH + '/b2b.png'
+        with open(plantuml_model_path, 'w') as f:
             f.write(output)
 
-        self.diagram_creator.make_diagram(path)
+        self.diagram_creator.make_diagram(plantuml_model_path, output_path)
 
     def make_routes_diagram(self):
+        # TODO: add rpc routes
+        routes_data = self._get_node_routes()
+        routes_with_nodes = []
+        nodes = set()
+        for route_data in routes_data:
+            route = route_data['route']
+            topic = route_data['publisher'].topic
+            message = route_data['publisher'].message_schema
+            connecting_nodes = [route[0].name, route[-1].name]
+            nodes.update(connecting_nodes)
+
+            routes_with_nodes.append({
+                'topic': topic,
+                'nodes': connecting_nodes,
+                'message': message
+            })
+
+        plantuml_model_path = PLANTUML_MODELS_DIR_PATH + '/n2n.txt'
+        output_path = OUTPUTS_DIR_PATH + '/n2n.png'
+
+        _write_template_to_file('n2n.tpl', {
+            'routes': routes_with_nodes,
+            'nodes': nodes
+        }, plantuml_model_path)
+        self.diagram_creator.make_diagram(plantuml_model_path, output_path)
+
+    def _get_node_routes(self):
         routes = []
         for publisher in self.publishers:
-            route = [publisher.parent.name, publisher.topic]
-            current_topic = publisher.topic
-            # check if there is a bridge
-            for bridge in self.topic_bridges:
-                if bridge.from_topic == current_topic:
-                    break
-            route.extend([bridge.name, bridge.to_topic])
-            current_topic = bridge.to_topic
-            # check if there is a subscriber that listens to current topic
-            for subscriber in self.subscribers:
-                if subscriber.topic == current_topic:
-                    break
-            route.extend([subscriber.parent.name])
-            print(route)
-            routes.append(route)
+            # a route can start only from a node
+            if not isinstance(publisher.parent, Node):
+                continue
 
-        output_path = DIAGRAMS_DIR_PATH + '/n2n.txt'
-        _write_template_to_file('n2n.tpl', {'routes': routes}, output_path)
+            start = [publisher.parent, publisher.parent.broker]
+            continuation = self._find_continuation(publisher, publisher.topic,
+                                                   publisher.parent.broker)
+            route = start + continuation
+
+            if len(route) > 2:
+                route_data = {'route': route, 'publisher': publisher}
+                routes.append(route_data)
+        return routes
+
+    def _find_continuation(self, element, topic: str, broker: Broker) -> list:
+        # case 1: A bridge
+        for bridge in self.topic_bridges:
+            if bridge.brokerA == broker and bridge.from_topic == topic:
+                return [bridge, bridge.brokerB] + self._find_continuation(
+                    bridge, bridge.to_topic, bridge.brokerB)
+
+        # case 2: A proxy
+        for proxy in self.proxies:
+            if (proxy.broker == broker and proxy.subscriber.topic == topic
+                    and proxy != element):
+                return [proxy.name] + self._find_continuation(
+                    proxy, proxy.publisher.topic, broker)
+
+        # case 3: A subscriber in the same broker
+        for subscriber in self.subscribers:
+            if (subscriber.topic == topic and subscriber.parent.broker == broker
+                    and subscriber != element):
+                return [subscriber.parent] + self._find_continuation(
+                    subscriber, subscriber.topic, broker)
+
+        # no continuation found
+        return []
 
     def make_md_file(self):
         """Creates a markdown file with the main information about the communication
         schema.
 
         The file contains:
-            - Transport type and topics of each broker
-            - Topic and data model of each unused publisher
-            - Topic of each unused subscriber
+            - Transport type and topics for each broker
+            - Topic and data model for unused endpoints
+            - Proxy data
         """
         total_in_topics = []
         total_out_topics = []
@@ -376,9 +435,11 @@ class NodesHandler:
             'unused_rpc_clients': unused_rpc_clients,
             'proxies': proxy_data
         }
-        output_path = DIAGRAMS_DIR_PATH + '/info.md'
+        output_path = OUTPUTS_DIR_PATH + '/info.md'
 
         _write_template_to_file('md_info.tpl', info_data, output_path)
+
+    # TODO: make routes md file
 
 
 def _write_template_to_file(template_name: str, template_data: dict,
@@ -393,4 +454,4 @@ def _write_template_to_file(template_name: str, template_data: dict,
 
 
 if __name__ == '__main__':
-    a = NodesHandler()
+    a = NodesHandler('models/temp.ent')
