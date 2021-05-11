@@ -5,83 +5,20 @@ Broker: MyRabbit
 Broker: MyRedis
 Broker: R4ABroker (default)
 
-Node ProxyTake1{
-    inports:
-        - subscriber:
-            topic: proxy.pub
+
+Node BridgeRPCGive1{
     outports:
-        - rpc_client tempRPC:
+        - rpc_client bridgeG1:
             message: SonarSensorMsgR
-        - publisher:
-            topic: temp.topic
 }
 
-Node ProxyGive1{
-    outports:
-        - publisher:
-            topic: proxy.sub
-            message: SonarSensorMsg
+Node BridgeRPCTake1{
     inports:
-        - subscriber:
-            topic: temp.topic
-}
-
-Node BridgeGive1{
-    outports:
-        - publisher:
-            topic: bridge.pub
-}
-
-Node BridgeTake1{
-    inports:
-        - subscriber:
-            topic: bridge.sub
+        - rpc_service bridgeG2:
+            message: SonarSensorMsgR
     broker: MyRabbit
-}
-
-Node MixedGive1{
-    outports:
-        - publisher:
-            topic: mixed.pub
-}
-
-Node MixedTake1{
-    inports:
-        - subscriber:
-            topic: mixed.sub
-    broker: MyRabbit
-}
-
-TopicBridge MixedBridge1{
-    R4ABroker(mixed.sub) - MyRabbit(mixed.sub)
-}
-
-TopicBridge Bridge1{
-    R4ABroker(bridge.pub) - MyRabbit(bridge.sub)
 }
 
 RPCBridge rpcBridge1{
-    MyRedis(popo) - MyRabbit(popo2)
-}
-
-Proxy testProxy{
-    inport:
-        - subscriber:
-            topic: proxy.sub
-    outport:
-        - publisher:
-            topic: proxy.pub
-    url: "http://localhost:8000"
-    method: GET
-}
-
-Proxy MixedProxy{
-    inport:
-        - subscriber:
-            topic: mixed.pub
-    outport:
-        - publisher:
-            topic: mixed.sub
-    url: "http://localhost:8000"
-    method: GET
+    R4ABroker(bridgeG1) - MyRabbit(bridgeG2)
 }

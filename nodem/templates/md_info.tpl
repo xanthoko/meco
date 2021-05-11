@@ -10,6 +10,8 @@
     {% endfor %}
 
 ## Unused Endpoints
+Endpoints that exist in the model but do not connect to any other endpoint.
+
 ### Publishers{% for unpub in unused_publishers %}
 - {{ unpub.topic }} {% if unpub.data_model %}
 ```
@@ -36,8 +38,8 @@
 { {% for value, type in urpcc.data_model.items() %}
     "{{ value }}": {{ type }} {% endfor %}
 }
-```
-{% endif %}{% endfor %}
+```{% endif %}{% endfor %}
+
 
 ## Proxies {% for proxy in proxies %}
 - {{ proxy.name }}: {{ proxy.method }} {{ proxy.url }}{% endfor %}
