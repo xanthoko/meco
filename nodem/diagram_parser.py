@@ -1,4 +1,3 @@
-from os import name
 from jinja2 import Environment, FileSystemLoader
 
 from nodem.diagram_creator import PlantUMLClient
@@ -29,7 +28,8 @@ class DiagramHandler:
         self.model = build_model(model_path)
         self.parse_model()
         # outputs
-        self.make_broker_connections_diagram()
+        self.make_broker_out_ports_diagram()
+        self.make_broker_in_ports_diagram()
         self.make_broker_to_broker_diagram()
         self.make_pubsub_routes_diagram()
         self.make_rpc_routes_diagram()
@@ -212,46 +212,72 @@ class DiagramHandler:
     def get_broker_by_name(self, broker_name: str) -> Broker:
         return get_first(self.brokers, 'name', broker_name)
 
-    def get_bridge_by_name(self, bridge_name: str,
-                           bridge_type: str) -> (TopicBridge, RPCBridge):
+    def get_bridge_by_name(self, bridge_name: str, bridge_type: str):
         bridges = self.topic_bridges if bridge_type == 'topic' else self.rpc_bridges
         return get_first(bridges, 'name', bridge_name)
 
     def get_proxy_by_name(self, proxy_name: str):
         return get_first(self.proxies, 'name', proxy_name)
 
-    def make_broker_connections_diagram(self):
-        """Make diagrams with the topics and rpc names in the input and outport
-        ports of each broker."""
-        brokers_data = []
-        broker_names = set()
-        for broker in self.brokers:
-            broker_names.add(broker.name)
-            input_topics = [
-                subscriber.topic for node in broker.nodes
-                for subscriber in node.subscribers
-            ]
-            output_topics = [
-                publisher.topic for node in broker.nodes
-                for publisher in node.publishers
-            ]
-            rpc_clients = [
-                client.name for node in broker.nodes for client in node.rpc_clients
-            ]
-            rpc_services = [
-                server.name for node in broker.nodes for server in node.rpc_services
-            ]
-            broker_data = {
-                'name': broker.name,
-                'input_topics': input_topics,
-                'output_topics': output_topics,
-                'rpc_clients': rpc_clients,
-                'rpc_services': rpc_services
-            }
-            brokers_data.append(broker_data)
+    def make_broker_out_ports_diagram(self):
+        """Make diagrams with the topics and rpc names in the output ports of each
+        broker."""
+        publishers = []
+        for publisher in self.publishers:
+            publishers.append({
+                'topic': publisher.topic,
+                'broker': publisher.parent.broker,
+                'message': publisher.message_schema
+            })
 
-        name_id = 'broker_conns'
-        template_data = {'brokers_data': brokers_data, 'brokers': broker_names}
+        rpc_clients = []
+        for rpc_client in self.rpc_clients:
+            rpc_clients.append({
+                'name': rpc_client.name,
+                'broker': rpc_client.parent.broker,
+                'message': rpc_client.message_schema
+            })
+
+        broker_names = []
+        for broker in self.brokers:
+            broker_names.append(broker.name)
+
+        name_id = 'broker_out_ports'
+        template_data = {
+            'brokers': broker_names,
+            'publishers': publishers,
+            'rpc_clients': rpc_clients
+        }
+        self._create_template_file_and_diagram(name_id, template_data)
+
+    def make_broker_in_ports_diagram(self):
+        """Make diagrams with the topics and rpc names in the input ports of each
+        broker."""
+        subscribers = []
+        for subscriber in self.subscribers:
+            subscribers.append({
+                'topic': subscriber.topic,
+                'broker': subscriber.parent.broker
+            })
+
+        rpc_services = []
+        for rpc_service in self.rpc_services:
+            rpc_services.append({
+                'name': rpc_service.name,
+                'broker': rpc_service.parent.broker,
+                'message': rpc_service.message_schema
+            })
+
+        broker_names = []
+        for broker in self.brokers:
+            broker_names.append(broker.name)
+
+        name_id = 'broker_in_ports'
+        template_data = {
+            'brokers': broker_names,
+            'subscribers': subscribers,
+            'rpc_services': rpc_services
+        }
         self._create_template_file_and_diagram(name_id, template_data)
 
     def make_broker_to_broker_diagram(self):
@@ -401,6 +427,7 @@ class DiagramHandler:
             - Topic and data model for unused endpoints
             - Proxy data
         """
+        # TODO: fix unused topics (see also bridges)
         total_in_topics = []
         total_out_topics = []
         total_rpc_services = []
