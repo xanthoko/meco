@@ -1,13 +1,19 @@
-## Brokers{% for broker_data in brokers_data %}
-    {{ broker_data.name }}:
-        transport type: {{ broker_data.type }}{% if broker_data.in_topics or broker_data.out_topics %}
-        topics: {% for in_topic in broker_data.in_topics %}
-            <- {{ in_topic }}{% endfor %}{% for out_topic in broker_data.out_topics %}
-            -> {{ out_topic }}{% endfor %}{% endif %} {% if broker_data.rpc_services or broker_data.rpc_clients %}
-        rpc names:{% for rpc_service in broker_data.rpc_services %}
-            + {{ rpc_service }}{% endfor %}{% for rpc_client in broker_data.rpc_clients %}
-            - {{ rpc_client }}{% endfor %} {% endif %}
-    {% endfor %}
+## Brokers
+- <-: publisher topic
+- ->: subscriber topic
+- \+  : rpc client
+- \- : rpc service
+
+```{% for broker_data in brokers_data %}
+{{ broker_data.name }}:
+    transport type: {{ broker_data.type }}{% if broker_data.in_topics or broker_data.out_topics %}
+    topics: {% for in_topic in broker_data.in_topics %}
+        <- {{ in_topic }}{% endfor %}{% for out_topic in broker_data.out_topics %}
+        -> {{ out_topic }}{% endfor %}{% endif %} {% if broker_data.rpc_services or broker_data.rpc_clients %}
+    rpc names:{% for rpc_service in broker_data.rpc_services %}
+        + {{ rpc_service }}{% endfor %}{% for rpc_client in broker_data.rpc_clients %}
+        - {{ rpc_client }}{% endfor %} {% endif %}
+{% endfor %}```
 
 ## Unused Endpoints
 Endpoints that exist in the model but do not connect to any other endpoint.

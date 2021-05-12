@@ -28,11 +28,11 @@ class DiagramHandler:
         self.model = build_model(model_path)
         self.parse_model()
         # outputs
-        # self.make_broker_out_ports_diagram()
-        # self.make_broker_in_ports_diagram()
-        # self.make_broker_to_broker_diagram()
-        # self.make_pubsub_routes_diagram()
-        # self.make_rpc_routes_diagram()
+        self.make_broker_out_ports_diagram()
+        self.make_broker_in_ports_diagram()
+        self.make_broker_to_broker_diagram()
+        self.make_pubsub_routes_diagram()
+        self.make_rpc_routes_diagram()
         self.make_md_file()
         self.make_routes_md_file()
 
@@ -506,35 +506,42 @@ class DiagramHandler:
         _write_template_to_file('md_info.tpl', info_data, output_path)
 
     def make_routes_md_file(self):
-        # TODO: make md format better
         topic_routes = self.get_node_routes_via_topic()
         topic_routes_data = []
         for topic_route in topic_routes:
-            topic = topic_route['publisher'].topic
+            start_topic = topic_route['publisher'].topic
+            end_topic = topic_route['subscriber'].topic
             route = topic_route['route']
 
-            route_start = f'**{route[0].name}**({topic})'
+            route_start = f'**{route[0].name}** \<{start_topic}>'
             stations = []
             for station in route[1:-1]:
                 if isinstance(station, Node):
                     stations.append(f'**{station.name}**')
                 else:
                     stations.append(station.name)
-            route_end = f'**{route[-1].name}**'
+            route_end = f'**{route[-1].name}** \<{end_topic}>'
             topic_routes_data.append({
                 'start': route_start,
                 'stations': stations,
-                'end': route_end,
-                'topic': topic
+                'end': route_end
             })
 
         rpc_routes = self.get_node_routes_via_rpc()
         rpc_routes_data = []
         for rpc_route in rpc_routes:
+            start_name = rpc_route['client'].name
+            end_name = rpc_route['service'].name
             route = rpc_route['route']
-            stations = [x.name for x in route][:-1]
-            route_end = route[-1].name
-            rpc_routes_data.append({'stations': stations, 'end': route_end})
+
+            route_start = f'**{route[0].name}** \<{start_name}>'
+            stations = [x.name for x in route][1:-1]
+            route_end = f'**{route[-1].name}** \<{end_name}>'
+            rpc_routes_data.append({
+                'start': route_start,
+                'stations': stations,
+                'end': route_end
+            })
 
         output_path = OUTPUTS_DIR_PATH + '/routes.md'
         _write_template_to_file('routes.tpl', {
