@@ -28,11 +28,11 @@ class DiagramHandler:
         self.model = build_model(model_path)
         self.parse_model()
         # outputs
-        self.make_broker_out_ports_diagram()
-        self.make_broker_in_ports_diagram()
-        self.make_broker_to_broker_diagram()
-        self.make_pubsub_routes_diagram()
-        self.make_rpc_routes_diagram()
+        # self.make_broker_out_ports_diagram()
+        # self.make_broker_in_ports_diagram()
+        # self.make_broker_to_broker_diagram()
+        # self.make_pubsub_routes_diagram()
+        # self.make_rpc_routes_diagram()
         self.make_md_file()
         self.make_routes_md_file()
 
@@ -196,8 +196,8 @@ class DiagramHandler:
             proxy.subscriber = subscriber
             proxy.publisher = publisher
 
-            self.subscribers.append(subscriber)
-            self.publishers.append(publisher)
+            # self.subscribers.append(subscriber)
+            # self.publishers.append(publisher)
             self.proxies.append(proxy)
 
     def get_node_by_name(self, node_name: str, node_type: str):
@@ -333,7 +333,11 @@ class DiagramHandler:
             route = start + continuation
 
             if len(route) > 2:
-                route_data = {'route': route, 'publisher': publisher}
+                route_data = {
+                    'route': route[:-1],  # without the end subscriber
+                    'publisher': publisher,
+                    'subscriber': route[-1]
+                }
                 routes.append(route_data)
         return routes
 
@@ -351,12 +355,11 @@ class DiagramHandler:
                 return [proxy] + self._find_continuation(
                     proxy, proxy.publisher.topic, broker)
 
-        # case 3: A subscriber in the same broker
+        # case 3: A subscriber in the same broker, final destination
         for subscriber in self.subscribers:
             if (subscriber.topic == topic and subscriber.parent.broker == broker
                     and subscriber != element):
-                return [subscriber.parent] + self._find_continuation(
-                    subscriber, topic, broker)
+                return [subscriber.parent, subscriber]
 
         # no continuation found
         return []
@@ -398,7 +401,11 @@ class DiagramHandler:
             route = start + continuation
 
             if len(route) > 2:
-                routes.append({'route': route, 'client': rpc_client})
+                routes.append({
+                    'route': route[:-1],
+                    'client': rpc_client,
+                    'service': route[-1]
+                })
 
         return routes
 
@@ -409,12 +416,11 @@ class DiagramHandler:
                 return [bridge, bridge.brokerB] + self._find_rpc_continuation(
                     bridge, bridge.nameB, bridge.brokerB)
 
-        # case 2: Rpc Service in the same broker
+        # case 2: Rpc Service in the same broker, final destination
         for rpc_service in self.rpc_services:
             if (rpc_service.name == rpc_name and rpc_service.parent.broker == broker
                     and rpc_service != element):
-                return [rpc_service.parent] + self._find_rpc_continuation(
-                    rpc_service, rpc_name, broker)
+                return [rpc_service.parent, rpc_service]
 
         return []
 
@@ -423,19 +429,13 @@ class DiagramHandler:
         schema.
 
         The file contains:
-            - Transport type and topics for each broker
-            - Topic and data model for unused endpoints
-            - Proxy data
+            - Transport type and endpoints for each broker
+            - Data model for unused endpoints
+            - Proxy information
         """
-        # TODO: fix unused topics (see also bridges)
-        total_in_topics = []
-        total_out_topics = []
-        total_rpc_services = []
-        total_rpc_clients = []
         # ----- brokers -----
         brokers_data = []
         for broker in self.brokers:
-            # --- topics ---
             in_topics = [
                 endpoint.topic for node in broker.nodes
                 for endpoint in node.subscribers
@@ -444,7 +444,6 @@ class DiagramHandler:
                 endpoint.topic for node in broker.nodes
                 for endpoint in node.publishers
             ]
-            # --- rpc names ---
             rpc_services = [
                 service.name for node in broker.nodes
                 for service in node.rpc_services
@@ -452,11 +451,6 @@ class DiagramHandler:
             rpc_clients = [
                 client.name for node in broker.nodes for client in node.rpc_clients
             ]
-            # --- total ---
-            total_in_topics += in_topics
-            total_out_topics += out_topics
-            total_rpc_services += rpc_services
-            total_rpc_clients += rpc_clients
 
             broker_data = {
                 'name': broker.name,
@@ -468,31 +462,32 @@ class DiagramHandler:
             }
             brokers_data.append(broker_data)
 
-        # ----- unused -----
-        unused_publishers = []
-        for publisher in self.publishers:
-            if (topic := publisher.topic) not in total_in_topics:
-                unused_publishers.append({
-                    'topic': topic,
-                    'data_model': publisher.message_schema
-                })
+        # ----- unused topic endpoints -----
+        topic_routes = self.get_node_routes_via_topic()
+        used_publishers = [x['publisher'] for x in topic_routes]
+        used_subscribers = [x['subscriber'] for x in topic_routes]
+
+        unused_publishers = [{
+            'topic': x.topic,
+            'data_model': x.message_schema
+        } for x in self.publishers if x not in used_publishers]
         unused_subscribers = [
-            x for x in total_in_topics if x not in total_out_topics
+            x.topic for x in self.subscribers if x not in used_subscribers
         ]
-        unused_rpc_services = []
-        for rpc_service in self.rpc_services:
-            if (rpc_name := rpc_service.name) not in total_rpc_clients:
-                unused_rpc_services.append({
-                    'name': rpc_name,
-                    'data_model': rpc_service.message_schema
-                })
-        unused_rpc_clients = []
-        for rpc_client in self.rpc_clients:
-            if (rpc_name := rpc_client.name) not in total_rpc_services:
-                unused_rpc_clients.append({
-                    'name': rpc_name,
-                    'data_model': rpc_client.message_schema
-                })
+
+        # ----- unused rpc endpoints -----
+        rpc_routes = self.get_node_routes_via_rpc()
+        used_rpc_services = [x['service'] for x in rpc_routes]
+        used_rpc_clients = [x['client'] for x in rpc_routes]
+
+        unused_rpc_services = [{
+            'name': x.name,
+            'data_model': x.message_schema
+        } for x in self.rpc_services if x not in used_rpc_services]
+        unused_rpc_clients = [{
+            'name': x.name,
+            'data_model': x.message_schema
+        } for x in self.rpc_clients if x not in used_rpc_clients]
 
         # ----- proxies -----
         proxy_data = []

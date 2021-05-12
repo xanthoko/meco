@@ -14,6 +14,9 @@ Node ProxyTake1{
             message: SonarSensorMsgR
         - publisher:
             topic: temp.topic
+        - publisher:
+            topic: unused.topic.A
+            message: SonarSensorMsg
 }
 
 Node ProxyGive1{
@@ -24,6 +27,10 @@ Node ProxyGive1{
     inports:
         - subscriber:
             topic: temp.topic
+        - subscriber:
+            topic: unused.topic.B
+        - rpc_service unused:
+            message: SonarSensorMsgR
 }
 
 Node BridgeGive1{
