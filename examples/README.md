@@ -18,7 +18,7 @@ To start them in locally use the following commands:
 ### Example #1  (Simple nodes)
 This example has one OutNode with a publisher and an rpc services and one InNode with a subscriber and an rpc client. The publisher is connected with the subscriber via the same topic and the rpc endpoints via the same name.
 
-To check the connections you can fire up a terminal and run `python -i simple.py`. You can either run `example_publisher.publish()` or `example_rpc_client.call(request)` to test that the endpoints are valid.
+To check the connections you can fire up a terminal and run `python -i simple_example.py`. You can either run `example_publisher.publish()` or `example_rpc_client.call(request)` to test that the endpoints are valid.
 
 
 ### Example #2  (Brigde)
@@ -26,7 +26,7 @@ Again, there is one OutNode and one InNode but their endpoints are not connected
 
 To connect them we use a TopicBride and an RPCBridge.
 
-To check that the endpoints are connected run `python -i bridge.py` and then either `example_publisher.publish()` or `example_rpc_client.call(request)`. If you comment out the brige lines (27,35) you can verify that the messages are not arriving in the InNode.
+To check that the endpoints are connected run `python -i bridge_example.py` and then either `example_publisher.publish()` or `example_rpc_client.call(request)`. If you comment out the brige lines (15,23) you can verify that the messages are not arriving in the InNode.
 
 
 ### Example #3  (Proxy)
@@ -34,4 +34,4 @@ In this example, there is an OutNode with a publisher *(external_publisher)* and
 
 There is also a proxy that when its subscriber consumes an event, it makes a request to "localhost:8000" and publishes the response to the external_subscriber.
 
-Open a terminal and run `python -i proxy.py`. To trigger the proxy functionality execute `external_publisher.publish()` and see the external_subscriber consume the response from "localhost:8000"
+Open a terminal and run `python -i proxy_example.py`. To trigger the proxy functionality execute `external_publisher.publish()` and see the external_subscriber consume the response from "localhost:8000"

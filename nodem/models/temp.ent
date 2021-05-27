@@ -2,23 +2,22 @@ import messages.idl;
 import brokers.br;
 
 Broker: MyRabbit
-Broker: MyRedis
 Broker: R4ABroker (default)
 
 
-Node BridgeRPCGive1{
+Node BridgeGive1{
     outports:
-        - rpc_client bridgeG1:
-            message: SonarSensorMsgR
+        - publisher:
+            topic: bridge.pub
 }
 
-Node BridgeRPCTake1{
+Node BridgeTake1{
     inports:
-        - rpc_service bridgeG2:
-            message: SonarSensorMsgR
+        - subscriber:
+            topic: bridge.sub
     broker: MyRabbit
 }
 
-RPCBridge rpcBridge1{
-    R4ABroker(bridgeG1) - MyRabbit(bridgeG2)
+TopicBridge Bridge1{
+    R4ABroker(bridge.pub) - MyRabbit(bridge.sub)
 }

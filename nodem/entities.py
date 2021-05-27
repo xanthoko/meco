@@ -1,6 +1,7 @@
-from commlib.node import Node as CommNode
-from commlib.endpoints import TransportType
 from commlib.msg import PubSubMessage, RPCMessage
+from commlib.node import Node as CommNode, TransportType
+
+from nodem.nodes import Node
 from nodem.logic import default_on_message, default_on_request
 
 
@@ -20,12 +21,16 @@ class Broker:
 
 
 class Publisher:
-    def __init__(self, node, topic: str, message_class: PubSubMessage):
-        self.parent = node
+    def __init__(self, parent, topic: str, message_class: PubSubMessage):
+        self.parent = parent
         self.topic = topic
         self.message_class = message_class
-        self.commlib_publisher = self._create_commlib_publisher(
-            topic, message_class, node.commlib_node)
+        if isinstance(parent, Node):
+            self.commlib_publisher = self._create_commlib_publisher(
+                topic, message_class, parent.commlib_node)
+        else:
+            self.commlib_publisher = self._create_commlib_bare_publisher(
+                topic, message_class, parent.broker)
 
     def publish(self, msg=None):
         msg = msg or self.message_class()
@@ -35,16 +40,31 @@ class Publisher:
                                   commlib_node: CommNode):
         return commlib_node.create_publisher(topic=topic, msg_type=message_module)
 
+    def _create_commlib_bare_publisher(self, topic, message_module, broker):
+        if broker.transport_type == TransportType.MQTT:
+            from commlib.transports.mqtt import Publisher
+        elif broker.transport_type == TransportType.AMQP:
+            from commlib.transports.amqp import Publisher
+        else:
+            from commlib.transports.redis import Publisher
+        return Publisher(topic=topic,
+                         msg_type=message_module,
+                         conn_params=broker.connection_params)
+
     def __repr__(self):
         return f'Publisher of: {self.parent}'
 
 
 class Subscriber:
-    def __init__(self, node, topic: str, on_message=None):
-        self.parent = node
+    def __init__(self, parent, topic: str, on_message=None):
+        self.parent = parent
         self.topic = topic
-        self.commlib_subscriber = self._create_commlib_subscriber(
-            topic, node.commlib_node, on_message)
+        if isinstance(parent, Node):
+            self.commlib_subscriber = self._create_commlib_subscriber(
+                topic, parent.commlib_node, on_message)
+        else:
+            self.commlib_subscriber = self._create_commlib_bare_subscriber(
+                topic, parent.broker, on_message)
 
     def run(self):
         self.commlib_subscriber.run()
@@ -54,18 +74,30 @@ class Subscriber:
         on_message = on_message or default_on_message
         return commlib_node.create_subscriber(topic=topic, on_message=on_message)
 
+    def _create_commlib_bare_subscriber(self, topic: str, broker: Broker,
+                                        on_message):
+        if broker.transport_type == TransportType.MQTT:
+            from commlib.transports.mqtt import Subscriber
+        elif broker.transport_type == TransportType.AMQP:
+            from commlib.transports.amqp import Subscriber
+        else:
+            from commlib.transports.redis import Subscriber
+        return Subscriber(topic=topic,
+                          on_message=on_message,
+                          conn_params=broker.connection_params)
+
     def __repr__(self):
         return f'Subscriber of: {self.parent}'
 
 
 class RPC_Service:
-    def __init__(self, node, name: str, message_class: RPCMessage, on_request):
-        self.parent = node
+    def __init__(self, parent, name: str, message_class: RPCMessage, on_request):
+        self.parent = parent
         self.name = name
         self.on_request = on_request
         self.message_class = message_class
         self.commlib_rpc_service = self._create_commlib_rpc_service(
-            name, message_class, node.commlib_node, default_on_request)
+            name, message_class, parent.commlib_node, default_on_request)
 
     def run(self):
         self.commlib_rpc_service.run()
@@ -84,12 +116,12 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self, node, name: str, message_module: RPCMessage):
-        self.parent = node
+    def __init__(self, parent, name: str, message_module: RPCMessage):
+        self.parent = parent
         self.name = name
         self.message_module = message_module
         self.commlib_rpc_client = self._create_commlib_rpc_client(
-            name, message_module, node.commlib_node)
+            name, message_module, parent.commlib_node)
 
     def call(self, msg):
         return self.commlib_rpc_client.call(msg)
@@ -106,15 +138,17 @@ class RPC_Client:
 
 
 class Proxy:
-    def __init__(self, name: str, url: str, method: str, broker: Broker, node):
+    def __init__(self, name: str, url: str, method: str, broker: Broker):
         self.name = name
         self.url = url
         self.method = method
         self.broker = broker
-        self.node = node  # BiNode
+
+        self.publisher = None
+        self.subscriber = None
 
     def run(self):
-        self.node.subscriber.run()
+        self.subscriber.run()
 
     def __repr__(self):
         return f'Proxy "{self.name} for "{self.url}"'
