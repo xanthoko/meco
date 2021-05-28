@@ -22,7 +22,7 @@ Proxy testProxy{
     outport:
         - publisher:
             topic: listen.data
-    url: "http://localhost:8000"
+    url: "https://www.google.com/"
     method: GET
 }
 

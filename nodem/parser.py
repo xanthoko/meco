@@ -1,5 +1,6 @@
 import requests
 from importlib import import_module
+from json.decoder import JSONDecodeError
 
 from commlib.msg import PubSubMessage
 from commlib.node import TransportType
@@ -11,12 +12,10 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.nodes import Node
-from nodem.bridges import TopicBridge, RPCBridge
 from nodem.logic import default_on_request, GenericDictMsg
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
-                            Proxy)
+                            Proxy, Node, TopicBridge, RPCBridge)
 from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
@@ -258,7 +257,11 @@ class NodesHandler:
                     print(f'[ERROR] Response was {status_code}')
                     return
 
-                generic_msg = GenericDictMsg(resp.json())
+                try:
+                    resp_msg_data = resp.json()
+                except JSONDecodeError:
+                    resp_msg_data = {'text': resp.text}
+                generic_msg = GenericDictMsg(resp_msg_data)
                 publisher.publish(generic_msg)
 
             subscriber = self._create_subscriber_entity(proxy_model.inport, proxy,
