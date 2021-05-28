@@ -17,4 +17,4 @@
 - [x] Add http proxy functionality
 - [ ] Specify method and params in proxy
 - [x] Join all entities
-- [ ] Make topic diagram 
+- [x] Make topic diagram 
