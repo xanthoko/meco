@@ -26,6 +26,7 @@ Again, there is one OutNode and one InNode but their endpoints are not connected
 
 To connect them we use a TopicBride and an RPCBridge.
 
+First of all, you need to open a Redis server, by executing `redis-server` in a terminal.
 To check that the endpoints are connected run `python -i bridge_example.py` and then either `example_publisher.publish()` or `example_rpc_client.call(request)`. If you comment out the brige lines (15,23) you can verify that the messages are not arriving in the InNode.
 
 
