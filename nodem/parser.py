@@ -2,9 +2,9 @@ import requests
 from importlib import import_module
 from json.decoder import JSONDecodeError
 
-from commlib.msg import PubSubMessage
 from commlib.node import TransportType
 from comm_idl.generator import GeneratorCommlibPy
+from commlib.msg import PubSubMessage, RPCMessage
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
                                      as amqpCreds)
 from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credentials
@@ -12,7 +12,7 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.logic import default_on_request, GenericDictMsg
+from nodem.logic import default_on_request, ReturnProxyMessage
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
                             Proxy, Node, TopicBridge, RPCBridge)
@@ -21,7 +21,7 @@ from nodem.utils import build_model, get_first, find_class_objects, typecasted_v
 
 class NodesHandler:
     """Class that handles the textx model that contains "nodes" attribute."""
-    def __init__(self, model_path='models/nodes.ent'):
+    def __init__(self, model_path='models/nodes.ent', messages_path=None):
         # services lists
         self.default_broker = None
         self.brokers = []
@@ -34,6 +34,9 @@ class NodesHandler:
         self.subscribers = []
         self.rpc_services = []
         self.rpc_clients = []
+        # paths
+        self.model_path = model_path
+        self.messages_path = messages_path or MESSAGES_MODEL_PATH
 
         self.model = build_model(model_path)
         self.parse_model()
@@ -91,7 +94,7 @@ class NodesHandler:
 
     def generate_message_modules(self):
         generator = GeneratorCommlibPy()
-        generator.generate(MESSAGES_MODEL_PATH, out_dir=ROOT_PATH)
+        generator.generate(self.messages_path, out_dir=ROOT_PATH)
         # fix import issues
         self._replace_object_imports(MESSAGES_DIR_PATH + '/pubsub.py')
         self._replace_object_imports(MESSAGES_DIR_PATH + '/rpc.py')
@@ -109,7 +112,7 @@ class NodesHandler:
         """For each InNode model creates the Node, its subscribers and its rpc
         clients."""
         node_models = find_class_objects(self.model.nodes, 'Node')
-        print(self.brokers)
+
         for node_model in node_models:
             if node_model.broker:
                 broker = get_first(self.brokers, 'name', node_model.broker.name)
@@ -143,15 +146,9 @@ class NodesHandler:
             node.subscribers.append(subscriber)
 
     def _create_rpc_services_for_node(self, rpc_service_models, node: Node):
-        rpc_msg_module = import_module('nodem.msgs.rpc')
         for rpc_service_model in rpc_service_models:
-            name = rpc_service_model.name
-            # message classes are attributes of the rpc_msg module
-            rpc_message = getattr(rpc_msg_module, rpc_service_model.object.name)
-            rpc_service = RPC_Service(node, name, rpc_message, default_on_request)
-
+            rpc_service = self._create_rpc_service_entity(rpc_service_model, node)
             node.rpc_services.append(rpc_service)
-            self.rpc_services.append(rpc_service)
 
     def _create_publishers_for_node(self, publisher_models, node: Node):
         for publisher_model in publisher_models:
@@ -184,6 +181,27 @@ class NodesHandler:
         subscriber = Subscriber(parent, topic, on_message)
         self.subscribers.append(subscriber)
         return subscriber
+
+    def _create_rpc_service_entity(self,
+                                   rpc_service_model,
+                                   parent,
+                                   on_request=None,
+                                   rpc_message=None):
+        rpc_msg_module = import_module('nodem.msgs.rpc')
+
+        name = rpc_service_model.name
+        # message classes are attributes of the rpc_msg module
+        if not rpc_message:
+            try:
+                rpc_message = getattr(rpc_msg_module, rpc_service_model.object.name)
+            except AttributeError:
+                rpc_message = RPCMessage
+
+        on_request = on_request or default_on_request
+        rpc_service = RPC_Service(parent, name, rpc_message, on_request)
+
+        self.rpc_services.append(rpc_service)
+        return rpc_service
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
@@ -222,7 +240,8 @@ class NodesHandler:
             self.rpc_bridges.append(bridge)
 
     def parse_proxies(self):
-        """A proxy makes a request to the given url and publishes the response."""
+        """A proxy makes a request to the given url and returns the response
+        as an rpc service."""
         proxy_models = find_class_objects(self.model.proxies, 'Proxy')
 
         for proxy_model in proxy_models:
@@ -237,9 +256,7 @@ class NodesHandler:
             proxy = Proxy(name, url, method, broker)
             self.proxies.append(proxy)
 
-            publisher = self._create_publisher_entity(proxy_model.outport, proxy)
-
-            def make_request(msg, method=method, url=url, publisher=publisher):
+            def make_request(msg, method=method, url=url):
                 if method.upper() == 'GET':
                     resp = requests.get(url)
                 elif method.upper() == 'POST':
@@ -260,14 +277,13 @@ class NodesHandler:
                 try:
                     resp_msg_data = resp.json()
                 except JSONDecodeError:
-                    resp_msg_data = {'text': resp.text}
-                generic_msg = GenericDictMsg(resp_msg_data)
-                publisher.publish(generic_msg)
+                    resp_msg_data = resp.text
+                return ReturnProxyMessage.Response(data=resp_msg_data)
 
-            subscriber = self._create_subscriber_entity(proxy_model.inport, proxy,
-                                                        make_request)
-            proxy.publisher = publisher
-            proxy.subscriber = subscriber
+            rpc_service = self._create_rpc_service_entity(proxy_model.port, proxy,
+                                                          make_request,
+                                                          ReturnProxyMessage)
+            proxy.rpc_service = rpc_service
 
     def get_node_by_name(self, node_name: str):
         return get_first(self.nodes, 'name', node_name)

@@ -1,17 +1,17 @@
+from os import CLD_CONTINUED
 from nodem.parser import NodesHandler
 
 example_model_path = '../examples/models/proxy.ent'
-node_parser = NodesHandler(example_model_path)
+example_messages_path = '../examples/models/messages.idl'
+node_parser = NodesHandler(example_model_path, example_messages_path)
 
 
 def get_proxy():
     return node_parser.get_proxy_by_name('testProxy')
 
 
-external_publisher = node_parser.get_node_by_name('thermoSensor').publishers[0]
+client = node_parser.get_node_by_name('thermoSensor').rpc_clients[0]
+msg = client.message_module.Request()
 proxy = get_proxy()
-external_subscriber = node_parser.get_node_by_name('ACDevice').subscribers[0]
 
 proxy.run()
-external_subscriber.run()
-external_publisher.publish()

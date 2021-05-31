@@ -6,6 +6,10 @@ Package {
 
 Object EmptyObject { }
 
+Object ProxyResp {
+  data: int
+}
+
 Object Header {
   timestamp: int
   id: int
@@ -56,5 +60,13 @@ RPCMessage ThermoSensorMsgR {
   header: Header
   ---
   data: ThermoData
+  header: Header
+}
+
+RPCMessage ProxyMessageR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: ProxyResp
   header: Header
 }

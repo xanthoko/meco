@@ -2,15 +2,35 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader
 from importlib import import_module
 
+from commlib.msg import RPCMessage, DataClass, DataField, Object
 from nodem.definitions import TEMPLATES_DIR_PATH, MESSAGES_DIR_PATH
 
 
-class GenericDictMsg:
-    def __init__(self, data):
-        self.data = data
+@DataClass
+class ProxyResp(Object):
+    """ProxyResp class implementation.
+    """
+    data: int = DataField(default=0)
 
-    def as_dict(self):
-        return self.data
+
+@DataClass
+class Header(Object):
+    """Header class implementation.
+    """
+    timestamp: int = DataField(default=0)
+    id: int = DataField(default=0)
+
+
+class ReturnProxyMessage(RPCMessage):
+    @DataClass
+    class Request(RPCMessage.Request):
+        data: int
+        header: int
+
+    @DataClass
+    class Response(RPCMessage.Response):
+        data: ProxyResp = DataField(default=ProxyResp())
+        header: Header = DataField(default=Header())
 
 
 def default_on_message(msg):

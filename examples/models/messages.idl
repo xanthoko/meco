@@ -28,6 +28,10 @@ Object ThermoData {
   humidity: float
 }
 
+Object ProxyResp {
+  data: int
+}
+
 PubSubMessage ThermoSensorMsg {
   temperature: float
 }
@@ -56,5 +60,13 @@ RPCMessage ThermoSensorMsgR {
   header: Header
   ---
   data: ThermoData
+  header: Header
+}
+
+RPCMessage ProxyMessageR {
+  data: EmptyObject
+  header: Header
+  ---
+  data: ProxyResp
   header: Header
 }

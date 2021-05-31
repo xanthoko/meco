@@ -98,8 +98,7 @@ class Proxy:
         self.method = method
         self.broker = broker
 
-        self.subscriber = None
-        self.publisher = None
+        self.rpc_service = None
 
     def as_dict(self):
         return {'name': self.name, 'method': self.method, 'url': self.url}

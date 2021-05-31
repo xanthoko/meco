@@ -192,11 +192,14 @@ class DiagramHandler:
                 broker = self.default_broker
 
             proxy = Proxy(name, url, method, broker)
-            subscriber = Subscriber(proxy, proxy_model.inport.topic)
-            publisher = Publisher(proxy, proxy_model.outport.topic, {})
+            rpc_service = RPC_Service(proxy, proxy_model.port.name, {})
+            # subscriber = Subscriber(proxy, proxy_model.inport.topic)
+            # publisher = Publisher(proxy, proxy_model.outport.topic, {})
 
-            proxy.subscriber = subscriber
-            proxy.publisher = publisher
+            # proxy.subscriber = subscriber
+            # proxy.publisher = publisher
+            proxy.rpc_service = rpc_service
+            self.rpc_services.append(rpc_service)
 
             # self.subscribers.append(subscriber)
             # self.publishers.append(publisher)
@@ -350,14 +353,7 @@ class DiagramHandler:
                 return [bridge, bridge.brokerB] + self._find_continuation(
                     bridge, bridge.to_topic, bridge.brokerB)
 
-        # case 2: A proxy
-        for proxy in self.proxies:
-            if (proxy.broker == broker and proxy.subscriber.topic == topic
-                    and proxy != element):
-                return [proxy] + self._find_continuation(
-                    proxy, proxy.publisher.topic, broker)
-
-        # case 3: A subscriber in the same broker, final destination
+        # case 2: A subscriber in the same broker, final destination
         for subscriber in self.subscribers:
             if (subscriber.topic == topic and subscriber.parent.broker == broker
                     and subscriber != element):
@@ -418,7 +414,13 @@ class DiagramHandler:
                 return [bridge, bridge.brokerB] + self._find_rpc_continuation(
                     bridge, bridge.nameB, bridge.brokerB)
 
-        # case 2: Rpc Service in the same broker, final destination
+        # case 2: A proxy
+        for proxy in self.proxies:
+            if (proxy.broker == broker and proxy.rpc_service.name == rpc_name
+                    and proxy != element):
+                return [proxy, proxy.rpc_service]
+
+        # case 3: Rpc Service in the same broker, final destination
         for rpc_service in self.rpc_services:
             if (rpc_service.name == rpc_name and rpc_service.parent.broker == broker
                     and rpc_service != element):

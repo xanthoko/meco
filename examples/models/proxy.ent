@@ -5,23 +5,13 @@ Broker: R4ABroker (default)
 
 Node thermoSensor{
     outports:
-        - publisher:
-            topic: thermo.humidity.data
-}
-
-Node ACDevice{
-    inports:
-        - subscriber:
-            topic: listen.data
+        - rpc_client listen_data:
+            message: ProxyMessageR
 }
 
 Proxy testProxy{
-    inport: 
-        - subscriber:
-            topic: thermo.humidity.data
-    outport:
-        - publisher:
-            topic: listen.data
+    port:
+        - rpc_service listen_data:
     url: "https://www.google.com/"
     method: GET
 }

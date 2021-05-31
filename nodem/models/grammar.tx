@@ -47,7 +47,7 @@ Subscriber:
 
 RPC_Service:
     '- rpc_service' name=ID ':'
-        'message:' object=[idl.RPCMessage]
+        ('message:' object=[idl.RPCMessage])?
 ;
 
 Bridge:
@@ -70,8 +70,7 @@ RPCBridge:
 
 Proxy:
     'Proxy' name=ID '{'
-        ('inport:' inport=Subscriber
-        'outport:' outport=Publisher
+        ('port:' port=RPC_Service
         'url:' url=STRING
         'method:' method=RequestMethods
         ('body:' body=[idl.Object])?
