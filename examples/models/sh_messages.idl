@@ -1,0 +1,46 @@
+Package {
+  name: msgs
+  description: "Messages for smart home example"
+  author: "Konstantinos Xanthopoulos"
+}
+
+Object EmptyObject { }
+
+Object Header {
+  timestamp: int
+  id: int
+}
+
+Object KitchenRelay{
+  state: int '0'
+}
+
+PubSubMessage TemperatureMsg{
+  temperature: float '0.0'
+}
+
+PubSubMessage HumidityMsg{
+  humidity: float '0.0'
+}
+
+PubSubMessage IntruderMsg{
+  positionX: int
+  positionY: int
+}
+
+PubSubMessage RobotMsg{
+  transX: int '0'
+  transY: int '0'
+  transZ: int '0'
+  orientX: int '0'
+  orientY: int '0'
+  orientZ: int '0'
+}
+
+RPCMessage KitchenMsgR {
+  data: KitchenRelay
+  header: Header
+  ---
+  data: EmptyObject
+  header: Header
+}

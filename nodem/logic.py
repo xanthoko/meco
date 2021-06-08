@@ -33,15 +33,6 @@ class ReturnProxyMessage(RPCMessage):
         header: Header = DataField(default=Header())
 
 
-def default_on_message(msg):
-    print(f'Message: {msg}')
-
-
-def default_on_request(msg):
-    print('Got a request')
-    return msg
-
-
 def generate_on_request_methods_file(message_names: List[str]) -> dict:
     file_loader = FileSystemLoader(TEMPLATES_DIR_PATH)
     env = Environment(loader=file_loader)

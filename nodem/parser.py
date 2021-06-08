@@ -1,3 +1,4 @@
+import os
 import requests
 from importlib import import_module
 from json.decoder import JSONDecodeError
@@ -12,7 +13,7 @@ from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credent
 from commlib.transports.redis import (ConnectionParameters as redisParams,
                                       Credentials as redisCreds)
 
-from nodem.logic import default_on_request, ReturnProxyMessage
+from nodem.logic import ReturnProxyMessage
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
                             Proxy, Node, TopicBridge, RPCBridge)
@@ -95,9 +96,24 @@ class NodesHandler:
     def generate_message_modules(self):
         generator = GeneratorCommlibPy()
         generator.generate(self.messages_path, out_dir=ROOT_PATH)
+        # NOTE: the out dir of messages path is determined by the name of
+        # the package in messages.idl. For simplicity sake we make the assumption
+        # that every package will be named msgs
         # fix import issues
-        self._replace_object_imports(MESSAGES_DIR_PATH + '/pubsub.py')
-        self._replace_object_imports(MESSAGES_DIR_PATH + '/rpc.py')
+        objects_messages_path = MESSAGES_DIR_PATH + '/object.py'
+        if not os.path.exists(objects_messages_path):
+            # pubsub and rpc message files import object file so if there
+            # are no objects declared in messages.idl file, we must create
+            # an empty 'object.py' file
+            with open(objects_messages_path, 'w'):
+                pass
+
+        pubsub_messages_path = MESSAGES_DIR_PATH + '/pubsub.py'
+        if os.path.exists(pubsub_messages_path):
+            self._replace_object_imports(pubsub_messages_path)
+        rpc_messages_path = MESSAGES_DIR_PATH + '/rpc.py'
+        if os.path.exists(rpc_messages_path):
+            self._replace_object_imports(rpc_messages_path)
 
     def _replace_object_imports(self, path: str):
         """The comm-idl generator has dynamic imports that need to be replaced
@@ -156,10 +172,16 @@ class NodesHandler:
             node.publishers.append(publisher)
 
     def _create_rpc_clients_for_node(self, rpc_client_models, node: Node):
-        rpc_msg_module = import_module('nodem.msgs.rpc')
+        try:
+            rpc_msg_module = import_module('nodem.msgs.rpc')
+        except ModuleNotFoundError:
+            # no rpc message found -> no rpc clients
+            pass
         for rpc_client_model in rpc_client_models:
             message_module = getattr(rpc_msg_module, rpc_client_model.object.name)
-            rpc_client = RPC_Client(node, rpc_client_model.name, message_module)
+            rpc_client = RPC_Client(node, rpc_client_model.name, message_module,
+                                    rpc_client_model.frequency,
+                                    rpc_client_model.mock)
 
             node.rpc_clients.append(rpc_client)
             self.rpc_clients.append(rpc_client)
@@ -167,17 +189,26 @@ class NodesHandler:
     def _create_publisher_entity(self, publisher_model, parent):
         msg_module = import_module('nodem.msgs.pubsub')
         topic = publisher_model.topic
+        frequency = publisher_model.frequency
+        mock = publisher_model.mock
         # message class is an attribute of message module
         try:
             pubsub_message = getattr(msg_module, publisher_model.object.name)
         except AttributeError:
             pubsub_message = PubSubMessage
-        publisher = Publisher(parent, topic, pubsub_message)
+
+        publisher = Publisher(parent, topic, pubsub_message, frequency, mock)
         self.publishers.append(publisher)
         return publisher
 
     def _create_subscriber_entity(self, subscriber_model, parent, on_message=None):
         topic = subscriber_model.topic
+
+        def custom_on_message(msg, topic=topic):
+            print(f'-----\nMessage consumed.\nTopic: "{topic}"\nMsg: {msg}')
+            return msg
+
+        on_message = on_message or custom_on_message
         subscriber = Subscriber(parent, topic, on_message)
         self.subscribers.append(subscriber)
         return subscriber
@@ -197,7 +228,11 @@ class NodesHandler:
             except AttributeError:
                 rpc_message = RPCMessage
 
-        on_request = on_request or default_on_request
+        def custom_on_request(msg):
+            print(f'<-----\nRequest received.\nName: "{name}."')
+            return rpc_message.Response()
+
+        on_request = on_request or custom_on_request
         rpc_service = RPC_Service(parent, name, rpc_message, on_request)
 
         self.rpc_services.append(rpc_service)

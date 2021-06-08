@@ -1,0 +1,76 @@
+import sh_messages.idl;
+import brokers.br;
+
+Broker: R4ABroker (default)
+Broker: MyRabbit
+
+Node temperaturePublisher{
+    outports:
+        - publisher:
+            topic: kitchen.temperature
+            message: TemperatureMsg
+            frequency: 2
+            mock: true
+        - publisher:
+            topic: bedroom.temperature
+            message: TemperatureMsg
+            frequency: 1
+            mock: true
+}
+
+
+Node humidityPublisher{
+    outports:
+        - publisher:
+            topic: bathroom.humidity
+            message: HumidityMsg
+            frequency: 1
+            mock: true
+}
+
+Node intruderPublisher{
+    outports:
+        - publisher:
+            topic: kitchen.intruder_detected
+            message: IntruderMsg
+            mock: true
+}
+
+Node RelayService{
+    inports:
+        - rpc_service kitchen.kitchen_relay:
+            message: KitchenMsgR
+}
+
+Node robotPublisher{
+    outports:
+        - publisher:
+            topic: robot.pose
+            message: RobotMsg
+            frequency: 1
+            mock: true
+    broker: MyRabbit
+}
+
+Node Validation{
+    inports:
+        - subscriber:
+            topic: kitchen.temperature
+        - subscriber:
+            topic: bedroom.temperature
+        - subscriber:
+            topic: bathroom.humidity
+        - subscriber:
+            topic: kitchen.intruder_detected
+        - subscriber:
+            topic: robot.pose
+    outports:
+        - rpc_client kitchen.kitchen_relay:
+            message: KitchenMsgR
+            frequency: 2
+            mock: true
+}
+
+TopicBridge RobotR4A2MyRabbit{
+    MyRabbit(robot.pose) - R4ABroker(robot.pose)
+}

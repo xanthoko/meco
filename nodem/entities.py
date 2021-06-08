@@ -1,9 +1,11 @@
+from time import sleep
+from typing import Optional
+from random import uniform, choice, randint
+
 from commlib.msg import PubSubMessage, RPCMessage
 from commlib.node import Node as CommNode, TransportType
 from commlib.bridges import (TopicBridge as CommTopBridge, TopicBridgeType,
                              RPCBridge as CommRPCBridge, RPCBridgeType)
-
-from nodem.logic import default_on_message, default_on_request
 
 
 class Broker:
@@ -32,6 +34,14 @@ class Node:
         self.publishers = []
         self.rpc_clients = []
 
+    def run_subscribers(self):
+        for subscriber in self.subscribers:
+            subscriber.run()
+
+    def run_rpcs(self):
+        for rpc_service in self.rpc_services:
+            rpc_service.run()
+
     def _create_commlib_node(self):
         return CommNode(node_name=self.name,
                         transport_type=self.broker.transport_type,
@@ -43,10 +53,18 @@ class Node:
 
 
 class Publisher:
-    def __init__(self, parent, topic: str, message_class: PubSubMessage):
+    def __init__(self,
+                 parent,
+                 topic: str,
+                 message_class: PubSubMessage,
+                 frequency: Optional[int] = None,
+                 mock: Optional[bool] = False):
         self.parent = parent
         self.topic = topic
         self.message_class = message_class
+        self.frequency = frequency
+        self.mock = mock
+
         if isinstance(parent, Node):
             self.commlib_publisher = self._create_commlib_publisher(
                 topic, message_class, parent.commlib_node)
@@ -54,9 +72,28 @@ class Publisher:
             self.commlib_publisher = self._create_commlib_bare_publisher(
                 topic, message_class, parent.broker)
 
-    def publish(self, msg=None):
-        msg = msg or self.message_class()
+    def publish(self):
+        msg = self.message_class()
+        if self.mock:
+            # filling with random data
+            dict_msg = self.message_class().as_dict()
+            mock_value_map = {
+                int: randint(0, 50),
+                float: uniform(0, 1),
+                bool: choice([True, False])
+            }
+            for key in dict_msg:
+                msg_att = getattr(msg, key)
+                mock_value = mock_value_map.get(type(msg_att), 'A random message')
+                setattr(msg, key, mock_value)
+
         self.commlib_publisher.publish(msg)
+
+    def publish_with_freq(self):
+        time_interval = 1 / self.frequency if self.frequency else 1
+        while True:
+            self.publish()
+            sleep(time_interval)
 
     def _create_commlib_publisher(self, topic: str, message_module,
                                   commlib_node: CommNode):
@@ -78,7 +115,7 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, parent, topic: str, on_message=None):
+    def __init__(self, parent, topic: str, on_message):
         self.parent = parent
         self.topic = topic
         self.commlib_subscriber = self._create_commlib_subscriber(
@@ -89,7 +126,6 @@ class Subscriber:
 
     def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode,
                                    on_message):
-        on_message = on_message or default_on_message
         return commlib_node.create_subscriber(topic=topic, on_message=on_message)
 
     def __repr__(self):
@@ -100,7 +136,7 @@ class RPC_Service:
     def __init__(self, parent, name: str, message_class: RPCMessage, on_request):
         self.parent = parent
         self.name = name
-        self.on_request = on_request or default_on_request
+        self.on_request = on_request
         self.message_class = message_class
         if isinstance(parent, Node):
             self.commlib_rpc_service = self._create_commlib_rpc_service(
@@ -139,15 +175,42 @@ class RPC_Service:
 
 
 class RPC_Client:
-    def __init__(self, parent, name: str, message_module: RPCMessage):
+    def __init__(self,
+                 parent,
+                 name: str,
+                 message_module: RPCMessage,
+                 frequency: Optional[int] = None,
+                 mock: Optional[bool] = False):
         self.parent = parent
         self.name = name
         self.message_module = message_module
+        self.frequency = frequency
+        self.mock = mock
+
         self.commlib_rpc_client = self._create_commlib_rpc_client(
             name, message_module, parent.commlib_node)
 
     def call(self, msg):
+        if self.mock:
+            dict_msg = msg.data.as_dict()
+            mock_value_map = {
+                int: randint(0, 50),
+                float: uniform(0, 1),
+                bool: choice([True, False])
+            }
+            for key in dict_msg:
+                msg_att = getattr(msg.data, key)
+                mock_value = mock_value_map.get(type(msg_att), 'A random message')
+                setattr(msg.data, key, mock_value)
+
+        print(f'----->\nSending request.\n{msg}')
         return self.commlib_rpc_client.call(msg)
+
+    def call_with_freq(self, msg):
+        time_interval = 1 / self.frequency if self.frequency else 1
+        while True:
+            self.call(msg)
+            sleep(time_interval)
 
     def _create_commlib_rpc_client(self, name: str, message_module, commlib_node):
         return commlib_node.create_rpc_client(rpc_name=name,

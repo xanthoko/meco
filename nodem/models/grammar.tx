@@ -27,13 +27,18 @@ OutPort:
 
 Publisher:
     '- publisher:'
-        'topic:' topic=FQN
-        ('message:' object=[idl.PubSubMessage])?
+        ('topic:' topic=FQN
+        'message:' object=[idl.PubSubMessage]
+        ('frequency:' frequency=INT)?
+        ('mock:' mock=BOOL)?)#
+
 ;
 
 RPC_Client:
-    '- rpc_client' name=ID ':'
-        'message:' object=[idl.RPCMessage]
+    '- rpc_client' name=FQN ':'
+        ('message:' object=[idl.RPCMessage]
+        ('frequency:' frequency=INT)?
+        ('mock:' mock=BOOL)?)#
 ;
 
 InPort:
@@ -46,7 +51,7 @@ Subscriber:
 ;
 
 RPC_Service:
-    '- rpc_service' name=ID ':'
+    '- rpc_service' name=FQN ':'
         ('message:' object=[idl.RPCMessage])?
 ;
 
