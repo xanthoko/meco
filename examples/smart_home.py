@@ -1,11 +1,10 @@
 import os
 
 from nodem.parser import NodesHandler
-from nodem.definitions import ROOT_PATH
+from nodem.definitions import ROOT_PARENT
 
 messages_path = 'examples/models/sh_messages.idl'
-root_root = '/'.join(ROOT_PATH.split('/')[:-1])
-example_message_path = os.path.join(root_root, messages_path)
+example_message_path = os.path.join(ROOT_PARENT, messages_path)
 
 node_parser = NodesHandler('../examples/models/smart_home.ent',
                            example_message_path)
