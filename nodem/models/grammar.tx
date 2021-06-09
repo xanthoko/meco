@@ -84,7 +84,7 @@ Proxy:
 ;
 
 RequestMethods:
-    'GET' | 'POST'
+    'GET' | 'POST' | 'DELETE' | 'PATCH'
 ;
 
 FQN: ID+['.'];
