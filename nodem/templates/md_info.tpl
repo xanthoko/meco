@@ -48,4 +48,5 @@ Endpoints that exist in the model but do not connect to any other endpoint.
 
 
 ## Proxies {% for proxy in proxies %}
+Information about the proxies used in the model
 - {{ proxy.name }}: {{ proxy.method }} {{ proxy.url }}{% endfor %}

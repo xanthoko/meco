@@ -1,0 +1,35 @@
+Package {
+  name: demo_messages
+  description: "Message model for demo purposes"
+  author: "Konstantinos Xanthopoulos"
+}
+
+Object EmptyObject {}
+
+Object Header {
+    timestamp: int
+    id: int
+}
+
+Object secoObject{
+    seco_in_mins: float
+    captain_in_command: string
+    seco_velocity: int
+}
+
+PubSubMessage SpaceShuttleMsg{
+    liftoff_at: int64
+    is_ready: int '0'
+}
+
+RPCMessage SECOMsg{
+    data: EmptyObject
+    header: Header
+    ---
+    data: secoObject
+    header: Header
+}
+
+
+
+

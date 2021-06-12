@@ -1,6 +1,7 @@
+
 Package {
   name: msgs
-  description: "Messages for smart home example"
+  description: "Demo messages"
   author: "Konstantinos Xanthopoulos"
 }
 
@@ -29,12 +30,12 @@ PubSubMessage IntruderMsg{
 }
 
 PubSubMessage RobotMsg{
-  transX: int '0'
-  transY: int '0'
-  transZ: int '0'
-  orientX: int '0'
-  orientY: int '0'
-  orientZ: int '0'
+  translationX: int '0'
+  translationY: int '0'
+  translationZ: int '0'
+  orientationX: int '0'
+  orientationY: int '0'
+  orientationZ: int '0'
 }
 
 RPCMessage KitchenMsgR {

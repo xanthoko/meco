@@ -1,0 +1,33 @@
+import messages.idl
+import brokers.br;
+
+Broker: MyRabbit
+Broker: MyRedis
+Broker: R4ABroker (default)
+
+Node CapeCanaveralPC{
+    outports:
+        - publisher:
+            topic: shuttle.liftoff
+            message: SpaceShuttleMsg
+            frequency: 10
+        -rpc_client secoRPC:
+            message: SECOMsg
+}
+
+Node ShuttleMainPC{
+    inports:
+        - subscriber:
+            topic: shuttle.liftoff
+        - rpc_service secoRPC:
+            message: SECOMsg
+}
+
+Proxy WeatherReportProxy{
+    port:
+        - rpc_service forecast:
+    url: "https://a-site-that-has-weather-forecast.com"
+    method: GET
+}
+
+

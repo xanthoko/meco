@@ -1,4 +1,7 @@
 @startuml
+{% if title %}
+title <b>{{ title }}</b>{% endif %}
+
 {% for node in nodes %}
     node {{ node }}{% endfor %}
 {% for route in routes %}

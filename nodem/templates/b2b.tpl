@@ -1,4 +1,7 @@
 @startuml
+{% if title %}
+title <b>{{ title }}</b>{% endif %}
+
 {% for bridge in bridges %}
     queue {{ bridge.brokerA }}
     queue {{ bridge.brokerB }}

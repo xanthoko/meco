@@ -9,15 +9,13 @@ Node temperaturePublisher{
         - publisher:
             topic: kitchen.temperature
             message: TemperatureMsg
-            frequency: 2
+            frequency: 1
             mock: true
         - publisher:
             topic: bedroom.temperature
             message: TemperatureMsg
             frequency: 1
-            mock: true
 }
-
 
 Node humidityPublisher{
     outports:
@@ -50,6 +48,16 @@ Node robotPublisher{
             frequency: 1
             mock: true
     broker: MyRabbit
+}
+
+Node unusedNode{
+    outports:
+        - publisher:
+            topic: free.topic
+            message: RobotMsg
+    inports:
+        - subscriber:
+            topic: free.sub
 }
 
 Node Validation{

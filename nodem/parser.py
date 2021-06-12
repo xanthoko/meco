@@ -21,7 +21,6 @@ from nodem.utils import build_model, get_first, find_class_objects, typecasted_v
 
 
 class NodesHandler:
-    """Class that handles the textx model that contains "nodes" attribute."""
     def __init__(self, model_path='models/nodes.ent', messages_path=None):
         # services lists
         self.default_broker = None
@@ -339,6 +338,11 @@ class NodesHandler:
     def get_proxy_by_name(self, proxy_name: str) -> Proxy:
         return get_first(self.proxies, 'name', proxy_name)
 
+    def get_publisher_by_topic(self, topic):
+        return get_first(self.publishers, 'topic', topic)
 
-if __name__ == '__main__':
-    a = NodesHandler('models/temp.ent')
+    def get_rpc_by_name(self, name, rpc_type):
+        if rpc_type == 'service':
+            return get_first(self.rpc_services, 'name', name)
+        else:
+            return get_first(self.rpc_clients, 'name', name)

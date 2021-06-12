@@ -1,5 +1,8 @@
 @startuml
 allow_mixing
+{% if title %}
+title <b>{{ title }}</b>{% endif %}
+
 {% for broker in brokers %}
     queue {{ broker }}{% endfor %}
 

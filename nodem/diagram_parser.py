@@ -28,7 +28,8 @@ class DiagramHandler:
 
         self.model = build_model(model_path)
         self.parse_model()
-        # outputs
+
+    def create_documentation(self):
         self.make_broker_out_ports_diagram()
         self.make_broker_in_ports_diagram()
         self.make_broker_to_broker_diagram()
@@ -251,7 +252,8 @@ class DiagramHandler:
         template_data = {
             'brokers': broker_names,
             'publishers': publishers,
-            'rpc_clients': rpc_clients
+            'rpc_clients': rpc_clients,
+            'title': 'ports to brokers'
         }
         self._create_template_file_and_diagram(name_id, template_data)
 
@@ -281,7 +283,8 @@ class DiagramHandler:
         template_data = {
             'brokers': broker_names,
             'subscribers': subscribers,
-            'rpc_services': rpc_services
+            'rpc_services': rpc_services,
+            'title': 'ports from brokers'
         }
         self._create_template_file_and_diagram(name_id, template_data)
 
@@ -297,7 +300,10 @@ class DiagramHandler:
             bridges_data.append(topic_bridge_data)
 
         name_id = 'b2b'
-        template_data = {'bridges': bridges_data}
+        template_data = {
+            'bridges': bridges_data,
+            'title': 'broker to broker connections'
+        }
         self._create_template_file_and_diagram(name_id, template_data)
 
     def make_pubsub_routes_diagram(self):
@@ -322,7 +328,11 @@ class DiagramHandler:
             })
 
         name_id = 'n2n_topic'
-        template_data = {'routes': routes_with_nodes, 'nodes': nodes}
+        template_data = {
+            'routes': routes_with_nodes,
+            'nodes': nodes,
+            'title': 'node connections: topics'
+        }
         self._create_template_file_and_diagram(name_id, template_data)
 
     def get_node_routes_via_topic(self):
@@ -383,7 +393,11 @@ class DiagramHandler:
             })
 
         name_id = 'n2n_rpc'
-        template_data = {'routes': routes_with_nodes, 'nodes': nodes}
+        template_data = {
+            'routes': routes_with_nodes,
+            'nodes': nodes,
+            'title': 'node connections: rpc'
+        }
         self._create_template_file_and_diagram(name_id, template_data)
 
     def get_node_routes_via_rpc(self):
