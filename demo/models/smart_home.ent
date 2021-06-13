@@ -54,7 +54,7 @@ Node unusedNode{
     outports:
         - publisher:
             topic: free.topic
-            message: RobotMsg
+            message: UnusedMsg
     inports:
         - subscriber:
             topic: free.sub

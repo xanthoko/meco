@@ -38,6 +38,12 @@ PubSubMessage RobotMsg{
   orientationZ: int '0'
 }
 
+PubSubMessage UnusedMsg{
+  rotationX: float
+  rotationY: float
+  is_rotated: int
+}
+
 RPCMessage KitchenMsgR {
   data: KitchenRelay
   header: Header
