@@ -11,6 +11,7 @@ Node ProxyTake1{
             message: SonarSensorMsgR
         - publisher:
             topic: temp.topic
+            message: ThermoSensorMsg
         - publisher:
             topic: unused.topic.A
             message: SonarSensorMsg
@@ -33,6 +34,7 @@ Node BridgeGive1{
     outports:
         - publisher:
             topic: bridge.pub
+            message: ThermoSensorMsg2
 }
 
 Node BridgeTake1{
@@ -46,6 +48,7 @@ Node MixedGive1{
     outports:
         - publisher:
             topic: mixed.pub
+            message: ThermoSensorMsg
 }
 
 Node MixedTake1{

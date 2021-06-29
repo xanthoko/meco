@@ -75,8 +75,8 @@ class NodesHandler:
             # retrieve connection variables from broker model
             host = broker_model.host
             port = broker_model.port
-            vhosts = broker_model.vhosts
-            vhost = vhosts[0] if vhosts else '/'
+            # vhosts = broker_model.vhosts
+            # vhost = vhosts[0] if vhosts else '/'
             # check if there are any credentials
             if broker_model.users:
                 creds_model = broker_model.users[
@@ -85,10 +85,7 @@ class NodesHandler:
                                     password=creds_model.password)
             else:
                 creds = None
-            connection_params = connection_param_class(host,
-                                                       port,
-                                                       creds=creds,
-                                                       vhost=vhost)
+            connection_params = connection_param_class(host, port, creds=creds)
 
             broker = Broker(broker_model.name, connection_params, transport_type)
             self.brokers.append(broker)

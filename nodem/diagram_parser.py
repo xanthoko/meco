@@ -30,14 +30,15 @@ class DiagramHandler:
         self.parse_model()
 
     def create_documentation(self):
-        self.make_broker_out_ports_diagram()
-        self.make_broker_in_ports_diagram()
-        self.make_broker_to_broker_diagram()
-        self.make_pubsub_routes_diagram()
-        self.make_rpc_routes_diagram()
-        self.make_topics_diagram()
-        self.make_md_file()
-        self.make_routes_md_file()
+        # self.make_broker_out_ports_diagram()
+        # self.make_broker_in_ports_diagram()
+        # self.make_broker_to_broker_diagram()
+        # self.make_pubsub_routes_diagram()
+        # self.make_rpc_routes_diagram()
+        # self.make_topics_diagram()
+        # self.make_md_file()
+        # self.make_routes_md_file()
+        self.make_doc_md()
 
     def parse_model(self):
         self.parse_brokers()
@@ -604,6 +605,22 @@ class DiagramHandler:
         _write_template_to_file(template_name, template_data, plantuml_model_path)
         self.diagram_creator.make_diagram(plantuml_model_path, output_path)
 
+    def make_doc_md(self):
+        topics = defaultdict(dict)
+        for publisher in self.publishers:
+            topic = publisher.topic
+            topics[topic]['publisher'] = True
+            topics[topic]['broker'] = publisher.parent.broker.name
+            topics[topic]['message'] = publisher.message_schema
+
+        for subscriber in self.subscribers:
+            topic = subscriber.topic
+            topics[topic]['subscriber'] = True
+            topics[topic]['broker'] = subscriber.parent.broker.name
+
+        output_path = OUTPUTS_DIR_PATH + '/doc.md'
+        _write_template_to_file('doc.tpl', {'topics': topics}, output_path)
+
 
 def _write_template_to_file(template_name: str, template_data: dict,
                             output_path: str):
@@ -617,5 +634,5 @@ def _write_template_to_file(template_name: str, template_data: dict,
 
 
 if __name__ == '__main__':
-    # a = DiagramHandler('models/temp.ent')
     a = DiagramHandler()
+    a.create_documentation()
