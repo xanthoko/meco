@@ -1,6 +1,6 @@
 import os
 
-from nodem.parser import NodesHandler
+from nodem.parser import EntitiesHandler
 from nodem.definitions import ROOT_PARENT
 
 messages_path = 'demo/models/sh_messages.idl'
@@ -8,7 +8,7 @@ example_message_path = os.path.join(ROOT_PARENT, messages_path)
 model_path = '../demo/models/smart_home.ent'
 
 # --- Code generation ---
-code_parser = NodesHandler(model_path, example_message_path)
+code_parser = EntitiesHandler(model_path, example_message_path)
 # publishers
 # p1 = code_parser.get_publisher_by_topic('kitchen.temperature')
 # p2 = code_parser.get_publisher_by_topic('bedroom.temperature')

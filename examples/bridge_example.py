@@ -1,7 +1,7 @@
-from nodem.parser import NodesHandler
+from nodem.parser import EntitiesHandler
 
 example_model_path = '../examples/models/bridge.ent'
-node_parser = NodesHandler(example_model_path)
+node_parser = EntitiesHandler(example_model_path)
 
 
 def get_bridge(bridge_type):

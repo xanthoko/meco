@@ -1,7 +1,7 @@
-from nodem.parser import NodesHandler
+from nodem.parser import EntitiesHandler
 
 example_model_path = '../examples/models/simple.ent'
-node_parser = NodesHandler(example_model_path)
+node_parser = EntitiesHandler(example_model_path)
 
 # ----- PubSub -----
 example_subscriber = node_parser.get_node_by_name('ACDevice').subscribers[0]

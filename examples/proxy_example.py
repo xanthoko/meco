@@ -1,9 +1,9 @@
 from os import CLD_CONTINUED
-from nodem.parser import NodesHandler
+from nodem.parser import EntitiesHandler
 
 example_model_path = '../examples/models/proxy.ent'
 example_messages_path = '../examples/models/messages.idl'
-node_parser = NodesHandler(example_model_path, example_messages_path)
+node_parser = EntitiesHandler(example_model_path, example_messages_path)
 
 
 def get_proxy():

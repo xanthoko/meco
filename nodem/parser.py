@@ -20,7 +20,7 @@ from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Clie
 from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
-class NodesHandler:
+class EntitiesHandler:
     def __init__(self, model_path='models/nodes.ent', messages_path=None):
         # services lists
         self.default_broker = None
