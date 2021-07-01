@@ -9,6 +9,7 @@ model_path = '../demo/models/smart_home.ent'
 
 # --- Code generation ---
 code_parser = EntitiesHandler(model_path, example_message_path)
+code_parser.parse_model()
 # publishers
 # p1 = code_parser.get_publisher_by_topic('kitchen.temperature')
 # p2 = code_parser.get_publisher_by_topic('bedroom.temperature')

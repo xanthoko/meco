@@ -190,7 +190,8 @@ class RPC_Client:
         self.commlib_rpc_client = self._create_commlib_rpc_client(
             name, message_module, parent.commlib_node)
 
-    def call(self, msg):
+    def call(self, msg=None):
+        msg = msg or self.message_module().Request()
         if self.mock:
             dict_msg = msg.data.as_dict()
             mock_value_map = {
@@ -206,7 +207,8 @@ class RPC_Client:
         print(f'----->\nSending request.\n{msg}')
         return self.commlib_rpc_client.call(msg)
 
-    def call_with_freq(self, msg):
+    def call_with_freq(self, msg=None):
+        msg = msg or self.message_module().Request()
         time_interval = 1 / self.frequency if self.frequency else 1
         while True:
             self.call(msg)

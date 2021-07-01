@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import date, datetime
 from importlib import import_module
 from json.decoder import JSONDecodeError
 
@@ -39,7 +40,6 @@ class EntitiesHandler:
         self.messages_path = messages_path or MESSAGES_MODEL_PATH
 
         self.model = build_model(model_path)
-        self.parse_model()
 
     def parse_model(self):
         self.parse_broker_connections()
@@ -207,7 +207,11 @@ class EntitiesHandler:
         topic = subscriber_model.topic
 
         def custom_on_message(msg, topic=topic):
-            print(f'-----\nMessage consumed.\nTopic: "{topic}"\nMsg: {msg}')
+            current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            print_msg = (f'-----\nMessage consumed.\nTopic: "{topic}"\nMsg: {msg}\n'
+                         f'Time: {current_time}')
+            print(print_msg)
+
             return msg
 
         on_message = on_message or custom_on_message
@@ -231,7 +235,9 @@ class EntitiesHandler:
                 rpc_message = RPCMessage
 
         def custom_on_request(msg):
-            print(f'<-----\nRequest received.\nName: "{name}."')
+            current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            print(
+                f'<-----\nRequest received.\nName: "{name}.\nTime: {current_time}"')
             return rpc_message.Response()
 
         on_request = on_request or custom_on_request
