@@ -6,7 +6,7 @@ Entities:
     brokers+=Broker
     nodes*=Node
     bridges*=Bridge
-    proxies*=Proxy
+    proxies*=RESTProxy
 ;
 
 Broker:
@@ -73,15 +73,19 @@ RPCBridge:
     '}'
 ;
 
-Proxy:
-    'Proxy' name=ID '{'
+
+RESTProxy:
+    'RESTProxy' name=ID '{'
         ('port:' port=RPC_Service
         'url:' url=STRING
         'method:' method=RequestMethods
         ('body:' body=[idl.Object])?
+        ('query:' query=[idl.Object])?
+        ('path:' path=[idl.Object])?
         ('broker:' broker=[bdsl.Broker])?)#
     '}'
 ;
+
 
 RequestMethods:
     'GET' | 'POST' | 'DELETE' | 'PATCH'
