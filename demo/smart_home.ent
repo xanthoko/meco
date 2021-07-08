@@ -15,7 +15,6 @@ Node temperaturePublisher{
             topic: bedroom.temperature
             message: TemperatureMsg
             frequency: 1
-    broker: R4ABroker
 }
 
 Node humidityPublisher{
@@ -25,7 +24,6 @@ Node humidityPublisher{
             message: HumidityMsg
             frequency: 1
             mock: true
-    broker: R4ABroker
 }
 
 Node intruderPublisher{
@@ -34,14 +32,12 @@ Node intruderPublisher{
             topic: kitchen.intruder_detected
             message: IntruderMsg
             mock: true
-    broker: R4ABroker
 }
 
 Node RelayService{
     inports:
         - rpc_service kitchen.kitchen_relay:
             message: KitchenMsgR
-    broker: R4ABroker
 }
 
 Node robotPublisher{
@@ -62,7 +58,6 @@ Node unusedNode{
     inports:
         - subscriber:
             topic: free.sub
-    broker: R4ABroker
 }
 
 Node Validation{
@@ -82,7 +77,6 @@ Node Validation{
             message: KitchenMsgR
             frequency: 2
             mock: true
-    broker: R4ABroker
 }
 
 TopicBridge RobotR4A2MyRabbit{
