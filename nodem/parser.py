@@ -53,8 +53,9 @@ class EntitiesHandler:
                     'password': creds_model.password
                 })
 
-            _write_template_to_file('entities/broker.tpl', data,
-                                    f'code_outputs/broker_{broker_model.name}.py')
+            _write_template_to_file(
+                'code_gen/broker.tpl', data,
+                f'{CODE_OUTPUTS_DIR_PATH}/broker_{broker_model.name}.py')
 
     def generate_message_modules(self):
         generator = GeneratorCommlibPy()
@@ -144,14 +145,14 @@ class EntitiesHandler:
                 })
 
             _write_template_to_file(
-                'entities/node.tpl', {
+                'code_gen/node.tpl', {
                     'node_name': node_name,
                     'broker': node_model.broker.name,
                     'subscribers': subscribers_data,
                     'publishers': publishers_data,
                     'rpc_services': rpc_services_data,
                     'rpc_clients': rpc_clients_data
-                }, f'code_outputs/node_{node_name}.py')
+                }, f'{CODE_OUTPUTS_DIR_PATH}/node_{node_name}.py')
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
@@ -161,14 +162,14 @@ class EntitiesHandler:
             name = topic_bridge_model.name
 
             _write_template_to_file(
-                'entities/bridge.tpl', {
+                'code_gen/bridge.tpl', {
                     'type': 'topic',
                     'name': name,
                     'brokerA': topic_bridge_model.brokerA.name,
                     'brokerB': topic_bridge_model.brokerB.name,
                     'from_topic': topic_bridge_model.fromTopic,
                     'to_topic': topic_bridge_model.toTopic
-                }, f'code_outputs/tbridge_{name}.py')
+                }, f'{CODE_OUTPUTS_DIR_PATH}/tbridge_{name}.py')
 
     def parse_rpc_bridges(self):
         """An rpc bridge connects BrokerA(nameA) -> BrokerB(nameB)"""
@@ -177,14 +178,14 @@ class EntitiesHandler:
         for rpc_bridge_model in rpc_bridge_models:
             name = rpc_bridge_model.name
             _write_template_to_file(
-                'entities/bridge.tpl', {
+                'code_gen/bridge.tpl', {
                     'type': 'rpc',
                     'name': name,
                     'brokerA': rpc_bridge_model.brokerA.name,
                     'brokerB': rpc_bridge_model.brokerB.name,
                     'from_name': rpc_bridge_model.nameA,
                     'to_name': rpc_bridge_model.nameB
-                }, f'code_outputs/rbridge_{name}.py')
+                }, f'{CODE_OUTPUTS_DIR_PATH}/rbridge_{name}.py')
 
     def parse_proxies(self):
         proxy_models = find_class_objects(self.model.proxies, 'RESTProxy')
@@ -198,7 +199,7 @@ class EntitiesHandler:
             header_params = _get_params(proxy_model.header)
 
             _write_template_to_file(
-                'entities/proxy.tpl', {
+                'code_gen/proxy.tpl', {
                     'name': name,
                     'body_params': body_params,
                     'query_params': query_params,
@@ -209,7 +210,7 @@ class EntitiesHandler:
                     'broker': proxy_model.broker.name,
                     'rpc_name': proxy_model.port.name,
                     'rpc_message_module': ReturnProxyMessage
-                }, f'code_outputs/proxy_{name}.py')
+                }, f'{CODE_OUTPUTS_DIR_PATH}/proxy_{name}.py')
 
 
 def _get_params(properties_model):

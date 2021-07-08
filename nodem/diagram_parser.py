@@ -1,10 +1,13 @@
+import argparse
+from pathlib import Path
+from shutil import rmtree
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 
 from nodem.diagram_creator import PlantUMLClient
 from nodem.utils import build_model, get_first, find_class_objects
 from nodem.definitions import (TEMPLATES_DIR_PATH, PLANTUML_MODELS_DIR_PATH,
-                               OUTPUTS_DIR_PATH)
+                               DOC_OUTPUTS_DIR_PATH)
 from nodem.diagram_entities import (Broker, Node, Subscriber, Publisher,
                                     RPC_Service, RPC_Client, TopicBridge, RPCBridge,
                                     Proxy)
@@ -26,18 +29,22 @@ class DiagramHandler:
         self.rpc_services = []
         self.rpc_clients = []
 
+        # clear doc_outputs directory
+        rmtree(DOC_OUTPUTS_DIR_PATH)
+        Path(DOC_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
+
         self.model = build_model(model_path)
         self.parse_model()
 
     def create_documentation(self):
-        # self.make_broker_out_ports_diagram()
-        # self.make_broker_in_ports_diagram()
-        # self.make_broker_to_broker_diagram()
-        # self.make_pubsub_routes_diagram()
-        # self.make_rpc_routes_diagram()
-        # self.make_topics_diagram()
-        # self.make_md_file()
-        # self.make_routes_md_file()
+        self.make_broker_out_ports_diagram()
+        self.make_broker_in_ports_diagram()
+        self.make_broker_to_broker_diagram()
+        self.make_pubsub_routes_diagram()
+        self.make_rpc_routes_diagram()
+        self.make_topics_diagram()
+        self.make_md_file()
+        self.make_routes_md_file()
         self.make_doc_md()
 
     def parse_model(self):
@@ -550,8 +557,8 @@ class DiagramHandler:
             'unused_rpc_clients': unused_rpc_clients,
             'proxies': proxy_data
         }
-        output_path = OUTPUTS_DIR_PATH + '/info.md'
-        _write_template_to_file('md_info.tpl', info_data, output_path)
+        output_path = DOC_OUTPUTS_DIR_PATH + '/info.md'
+        _write_template_to_file('doc_gen/md_info.tpl', info_data, output_path)
 
     def make_routes_md_file(self):
         topic_routes = self.get_node_routes_via_topic()
@@ -591,15 +598,15 @@ class DiagramHandler:
                 'end': route_end
             })
 
-        output_path = OUTPUTS_DIR_PATH + '/routes.md'
-        _write_template_to_file('routes.tpl', {
+        output_path = DOC_OUTPUTS_DIR_PATH + '/routes.md'
+        _write_template_to_file('doc_gen/routes.tpl', {
             'topic_routes': topic_routes_data,
             'rpc_routes': rpc_routes_data
         }, output_path)
 
     def _create_template_file_and_diagram(self, name_id: str, template_data: dict):
-        template_name = f'{name_id}.tpl'
-        output_path = OUTPUTS_DIR_PATH + f'/{name_id}.png'
+        template_name = f'doc_gen/{name_id}.tpl'
+        output_path = DOC_OUTPUTS_DIR_PATH + f'/{name_id}.png'
         plantuml_model_path = PLANTUML_MODELS_DIR_PATH + f'/{name_id}.txt'
 
         _write_template_to_file(template_name, template_data, plantuml_model_path)
@@ -618,8 +625,8 @@ class DiagramHandler:
             topics[topic]['subscriber'] = True
             topics[topic]['broker'] = subscriber.parent.broker.name
 
-        output_path = OUTPUTS_DIR_PATH + '/doc.md'
-        _write_template_to_file('doc.tpl', {'topics': topics}, output_path)
+        output_path = DOC_OUTPUTS_DIR_PATH + '/doc.md'
+        _write_template_to_file('doc_gen/doc.tpl', {'topics': topics}, output_path)
 
 
 def _write_template_to_file(template_name: str, template_data: dict,
@@ -633,6 +640,20 @@ def _write_template_to_file(template_name: str, template_data: dict,
         f.write(output)
 
 
+def parse_args() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+
+    # Add arguments
+    parser.add_argument("--model", help="Path to the meco model")
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    a = DiagramHandler()
-    a.create_documentation()
+    cl_args = parse_args()
+
+    default_model_path = 'models/nodes.ent'
+    model_path = cl_args.model or default_model_path
+
+    handler = DiagramHandler(model_path=model_path)
+    handler.create_documentation()

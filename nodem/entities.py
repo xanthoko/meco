@@ -5,8 +5,6 @@ from datetime import datetime
 from json.decoder import JSONDecodeError
 from random import uniform, choice, randint
 
-from requests.api import head
-
 from nodem.logic import ReturnProxyMessage
 
 from commlib.msg import PubSubMessage, RPCMessage
