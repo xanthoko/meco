@@ -4,8 +4,8 @@ from json.decoder import JSONDecodeError
 
 from comm_idl.generator import GeneratorCommlibPy
 
+from nodem.entities import Proxy
 from nodem.logic import ReturnProxyMessage
-from nodem.entities import Proxy, TopicBridge, RPCBridge
 from nodem.diagram_parser import _write_template_to_file
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
 from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
@@ -22,8 +22,8 @@ class EntitiesHandler:
         self.parse_broker_connections()
         self.generate_message_modules()
         self.parse_nodes()
-        # self.parse_topic_bridges()
-        # self.parse_rpc_bridges()
+        self.parse_topic_bridges()
+        self.parse_rpc_bridges()
         # self.parse_proxies()
 
     def parse_broker_connections(self):
@@ -154,17 +154,16 @@ class EntitiesHandler:
 
         for topic_bridge_model in topic_bridge_models:
             name = topic_bridge_model.name
-            brokerA = self.get_broker_by_name(topic_bridge_model.brokerA.name)
-            brokerB = self.get_broker_by_name(topic_bridge_model.brokerB.name)
-            from_topic = topic_bridge_model.fromTopic
-            to_topic = topic_bridge_model.toTopic
 
-            bridge = TopicBridge(name=name,
-                                 brokerA=brokerA,
-                                 brokerB=brokerB,
-                                 from_topic=from_topic,
-                                 to_topic=to_topic)
-            self.topic_bridges.append(bridge)
+            _write_template_to_file(
+                'entities/bridge.tpl', {
+                    'type': 'topic',
+                    'name': name,
+                    'brokerA': topic_bridge_model.brokerA.name,
+                    'brokerB': topic_bridge_model.brokerB.name,
+                    'from_topic': topic_bridge_model.fromTopic,
+                    'to_topic': topic_bridge_model.toTopic
+                }, f'code_outputs/tbridge_{name}.py')
 
     def parse_rpc_bridges(self):
         """An rpc bridge connects BrokerA(nameA) -> BrokerB(nameB)"""
@@ -172,17 +171,15 @@ class EntitiesHandler:
 
         for rpc_bridge_model in rpc_bridge_models:
             name = rpc_bridge_model.name
-            brokerA = self.get_broker_by_name(rpc_bridge_model.brokerA.name)
-            brokerB = self.get_broker_by_name(rpc_bridge_model.brokerB.name)
-            nameA = rpc_bridge_model.nameA
-            nameB = rpc_bridge_model.nameB
-
-            bridge = RPCBridge(name=name,
-                               brokerA=brokerA,
-                               brokerB=brokerB,
-                               nameA=nameA,
-                               nameB=nameB)
-            self.rpc_bridges.append(bridge)
+            _write_template_to_file(
+                'entities/bridge.tpl', {
+                    'type': 'rpc',
+                    'name': name,
+                    'brokerA': rpc_bridge_model.brokerA.name,
+                    'brokerB': rpc_bridge_model.brokerB.name,
+                    'from_name': rpc_bridge_model.nameA,
+                    'to_name': rpc_bridge_model.nameB
+                }, f'code_outputs/rbridge_{name}.py')
 
     def parse_proxies(self):
         """A proxy makes a request to the given url and returns the response

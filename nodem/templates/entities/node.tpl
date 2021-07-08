@@ -37,5 +37,4 @@ rpc_client_{{ loop.index }} = RPC_Client(node, "{{ rpc_client.name }}", rpcc_mes
 
 if __name__ == '__main__':
     # add activation methods here
-    pass
     
