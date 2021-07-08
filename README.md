@@ -18,6 +18,6 @@
 - [x] Specify method and params in proxy
 - [x] Join all entities
 - [x] Make topic diagram 
-- [ ] Default broker
+- [x] Default broker
 - [x] Add path and query params to proxy declaration model
 - [x] Clean up diagram parser
