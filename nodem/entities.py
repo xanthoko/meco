@@ -1,5 +1,6 @@
 from time import sleep
 from typing import Optional
+from datetime import datetime
 from random import uniform, choice, randint
 
 from commlib.msg import PubSubMessage, RPCMessage
@@ -9,12 +10,16 @@ from commlib.bridges import (TopicBridge as CommTopBridge, TopicBridgeType,
 
 
 class Broker:
-    def __init__(self, name: str, connection_params: dict,
-                 transport_type: TransportType):
+    def __init__(self,
+                 name: str,
+                 connection_params: dict,
+                 transport_type: TransportType,
+                 is_default: Optional[bool] = False):
         self.name = name
         self.connection_params = connection_params
         self.transport_type = transport_type
         self.type = self.transport_type.name
+        self.is_default = False
 
     def __repr__(self):
         return self.name
@@ -115,14 +120,24 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, parent, topic: str, on_message):
+    def __init__(self, parent, topic: str, on_message=None):
         self.parent = parent
         self.topic = topic
+        on_message = on_message or self.custom_on_message
         self.commlib_subscriber = self._create_commlib_subscriber(
             topic, parent.commlib_node, on_message)
 
     def run(self):
         self.commlib_subscriber.run()
+
+    def custom_on_message(self, msg, topic=None):
+        topic = topic or self.topic
+        current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        print_msg = (f'-----\nMessage consumed.\nTopic: "{topic}"\nMsg: {msg}\n'
+                     f'Time: {current_time}')
+        print(print_msg)
+
+        return msg
 
     def _create_commlib_subscriber(self, topic: str, commlib_node: CommNode,
                                    on_message):
@@ -133,10 +148,14 @@ class Subscriber:
 
 
 class RPC_Service:
-    def __init__(self, parent, name: str, message_class: RPCMessage, on_request):
+    def __init__(self,
+                 parent,
+                 name: str,
+                 message_class: RPCMessage,
+                 on_request=None):
         self.parent = parent
         self.name = name
-        self.on_request = on_request
+        self.on_request = on_request or self.custom_on_request
         self.message_class = message_class
         if isinstance(parent, Node):
             self.commlib_rpc_service = self._create_commlib_rpc_service(
@@ -147,6 +166,13 @@ class RPC_Service:
 
     def run(self):
         self.commlib_rpc_service.run()
+
+    def custom_on_request(self, msg):
+        rpc_message = self.message_class
+        name = self.name
+        current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        print(f'<-----\nRequest received.\nName: "{name}.\nTime: {current_time}"')
+        return rpc_message.Response()
 
     def _create_commlib_rpc_service(self, name: str, message_module, commlib_node,
                                     on_request):

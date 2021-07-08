@@ -15,6 +15,7 @@ Node ProxyTake1{
         - publisher:
             topic: unused.topic.A
             message: SonarSensorMsg
+    broker: R4ABroker
 }
 
 Node ProxyGive1{
@@ -22,12 +23,15 @@ Node ProxyGive1{
         - rpc_client proxy_rpc:
             message: ProxyMessageR
     inports:
+        - rpc_service tempRPC:
+            message: SonarSensorMsgR
         - subscriber:
             topic: temp.topic
         - subscriber:
             topic: unused.topic.B
         - rpc_service unused:
             message: SonarSensorMsgR
+    broker: R4ABroker
 }
 
 Node BridgeGive1{
@@ -35,6 +39,7 @@ Node BridgeGive1{
         - publisher:
             topic: bridge.pub
             message: ThermoSensorMsg2
+    broker: R4ABroker
 }
 
 Node BridgeTake1{
@@ -49,6 +54,7 @@ Node MixedGive1{
         - publisher:
             topic: mixed.pub
             message: ThermoSensorMsg
+    broker: R4ABroker
 }
 
 Node MixedTake1{
@@ -62,6 +68,7 @@ Node BridgeRPCGive1{
     outports:
         - rpc_client bridgeG1:
             message: SonarSensorMsgR
+    broker: R4ABroker
 }
 
 Node BridgeRPCTake1{
@@ -88,16 +95,18 @@ RPCBridge rpcBridge2{
 }
 
 
-Proxy testProxy{
+RESTProxy testProxy{
     port:
         - rpc_service proxy_rpc:
     url: "http://google.com"
     method: GET
+    broker: R4ABroker
 }
 
-Proxy MixedProxy{
+RESTProxy MixedProxy{
     port:
         - rpc_service mixed_rpc:
     url: "http://localhost:8000"
     method: GET
+    broker: R4ABroker
 }

@@ -1,41 +1,18 @@
 import os
 import requests
-from datetime import date, datetime
-from importlib import import_module
 from json.decoder import JSONDecodeError
 
-from commlib.node import TransportType
 from comm_idl.generator import GeneratorCommlibPy
-from commlib.msg import PubSubMessage, RPCMessage
-from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials
-                                     as amqpCreds)
-from commlib.transports.mqtt import (ConnectionParameters as mqttParams, Credentials
-                                     as mqttCreds)
-from commlib.transports.redis import (ConnectionParameters as redisParams,
-                                      Credentials as redisCreds)
 
 from nodem.logic import ReturnProxyMessage
+from nodem.entities import Proxy, TopicBridge, RPCBridge
+from nodem.diagram_parser import _write_template_to_file
 from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
-from nodem.entities import (Broker, Publisher, Subscriber, RPC_Service, RPC_Client,
-                            Proxy, Node, TopicBridge, RPCBridge)
 from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
 class EntitiesHandler:
     def __init__(self, model_path='models/nodes.ent', messages_path=None):
-        # services lists
-        self.default_broker = None
-        self.brokers = []
-        self.nodes = []
-        self.topic_bridges = []
-        self.rpc_bridges = []
-        self.proxies = []
-        # endpoints lists
-        self.publishers = []
-        self.subscribers = []
-        self.rpc_services = []
-        self.rpc_clients = []
-        # paths
         self.model_path = model_path
         self.messages_path = messages_path or MESSAGES_MODEL_PATH
 
@@ -45,55 +22,34 @@ class EntitiesHandler:
         self.parse_broker_connections()
         self.generate_message_modules()
         self.parse_nodes()
-        self.parse_topic_bridges()
-        self.parse_rpc_bridges()
-        self.parse_proxies()
+        # self.parse_topic_bridges()
+        # self.parse_rpc_bridges()
+        # self.parse_proxies()
 
     def parse_broker_connections(self):
-        """Parses the broker models and creates Broker entities with their
-        connection parameters."""
-        # broker_type: [
-        #   transport_type: enum,
-        #   connection_params: class,
-        #   credentials: class
-        # ]
-        broker_type_map = {
-            'RedisBroker': [TransportType.REDIS, redisParams, redisCreds],
-            'AMQPBrokerGeneric': [TransportType.AMQP, amqpParams, amqpCreds],
-            'RabbitBroker': [TransportType.AMQP, amqpParams, amqpCreds],
-            'MQTTBrokerGeneric': [TransportType.MQTT, mqttParams, mqttCreds],
-            'EMQXBroker': [TransportType.MQTT, mqttParams, mqttCreds]
-        }
-
         broker_models = self.model.brokers
         for broker_model in broker_models:
+            is_default = broker_model.default != ''
+
             broker_model = broker_model.broker
             broker_type = broker_model.__class__.__name__
 
-            transport_type, connection_param_class, creds_class = broker_type_map[
-                broker_type]
-            # retrieve connection variables from broker model
-            host = broker_model.host
-            port = broker_model.port
-            # vhosts = broker_model.vhosts
-            # vhost = vhosts[0] if vhosts else '/'
-            # check if there are any credentials
+            data = {
+                'name': broker_model.name,
+                'host': broker_model.host,
+                'port': broker_model.port,
+                'broker_type': broker_type,
+                'is_default': is_default
+            }
             if broker_model.users:
-                creds_model = broker_model.users[
-                    0]  # get the first pair of credentials
-                creds = creds_class(username=creds_model.username,
-                                    password=creds_model.password)
-            else:
-                creds = None
-            connection_params = connection_param_class(host, port, creds=creds)
+                creds_model = broker_model.users[0]  # first pair of credentials
+                data.update({
+                    'username': creds_model.username,
+                    'password': creds_model.password
+                })
 
-            broker = Broker(broker_model.name, connection_params, transport_type)
-            self.brokers.append(broker)
-
-            # the grammar defines that at least one broker must be declared
-            if self.default_broker is None:
-                self.default_broker = self.brokers[
-                    0]  # set the first broker as default
+            _write_template_to_file('entities/broker.tpl', data,
+                                    f'code_outputs/broker_{broker_model.name}.py')
 
     def generate_message_modules(self):
         generator = GeneratorCommlibPy()
@@ -127,124 +83,70 @@ class EntitiesHandler:
             f.write(text)
 
     def parse_nodes(self):
-        """For each InNode model creates the Node, its subscribers and its rpc
-        clients."""
         node_models = find_class_objects(self.model.nodes, 'Node')
 
         for node_model in node_models:
-            if node_model.broker:
-                broker = get_first(self.brokers, 'name', node_model.broker.name)
-            else:
-                broker = self.default_broker
             # --- node ---
-            node = Node(node_model.name, broker)
-            self.nodes.append(node)
+            node_name = node_model.name
 
             # --- subscribers ---
             subscriber_models = find_class_objects(node_model.inports, 'Subscriber')
-            self._create_subscribers_for_node(subscriber_models, node)
+            subscribers_data = []
+            for subscriber_model in subscriber_models:
+                subscribers_data.append({'topic': subscriber_model.topic})
 
             # --- rpc_services ---
             rpc_service_models = find_class_objects(node_model.inports,
                                                     'RPC_Service')
-            self._create_rpc_services_for_node(rpc_service_models, node)
+            rpc_services_data = []
+            for rpc_service_model in rpc_service_models:
+                rpc_services_data.append({
+                    'name':
+                    rpc_service_model.name,
+                    'message_module_name':
+                    rpc_service_model.object.name
+                })
 
             # --- publishers ---
             publisher_models = find_class_objects(node_model.outports, 'Publisher')
-            self._create_publishers_for_node(publisher_models, node)
+            publishers_data = []
+            for publisher_model in publisher_models:
+                publishers_data.append({
+                    'topic':
+                    publisher_model.topic,
+                    'message_module_name':
+                    publisher_model.object.name,
+                    'frequency':
+                    publisher_model.frequency,
+                    'mock':
+                    publisher_model.mock
+                })
 
             # --- rpc_clients ---
             rpc_client_models = find_class_objects(node_model.outports,
                                                    'RPC_Client')
-            self._create_rpc_clients_for_node(rpc_client_models, node)
+            rpc_clients_data = []
+            for rpc_client_model in rpc_client_models:
+                rpc_clients_data.append({
+                    'name':
+                    rpc_client_model.name,
+                    'message_module_name':
+                    rpc_client_model.object.name,
+                    'frequency':
+                    rpc_client_model.frequency,
+                    'mock':
+                    rpc_client_model.mock
+                })
 
-    def _create_subscribers_for_node(self, subscriber_models, node: Node):
-        for subscriber_model in subscriber_models:
-            subscriber = self._create_subscriber_entity(subscriber_model, node)
-            node.subscribers.append(subscriber)
-
-    def _create_rpc_services_for_node(self, rpc_service_models, node: Node):
-        for rpc_service_model in rpc_service_models:
-            rpc_service = self._create_rpc_service_entity(rpc_service_model, node)
-            node.rpc_services.append(rpc_service)
-
-    def _create_publishers_for_node(self, publisher_models, node: Node):
-        for publisher_model in publisher_models:
-            publisher = self._create_publisher_entity(publisher_model, node)
-            node.publishers.append(publisher)
-
-    def _create_rpc_clients_for_node(self, rpc_client_models, node: Node):
-        try:
-            rpc_msg_module = import_module('nodem.msgs.rpc')
-        except ModuleNotFoundError:
-            # no rpc message found -> no rpc clients
-            pass
-        for rpc_client_model in rpc_client_models:
-            message_module = getattr(rpc_msg_module, rpc_client_model.object.name)
-            rpc_client = RPC_Client(node, rpc_client_model.name, message_module,
-                                    rpc_client_model.frequency,
-                                    rpc_client_model.mock)
-
-            node.rpc_clients.append(rpc_client)
-            self.rpc_clients.append(rpc_client)
-
-    def _create_publisher_entity(self, publisher_model, parent):
-        msg_module = import_module('nodem.msgs.pubsub')
-        topic = publisher_model.topic
-        frequency = publisher_model.frequency
-        mock = publisher_model.mock
-        # message class is an attribute of message module
-        try:
-            pubsub_message = getattr(msg_module, publisher_model.object.name)
-        except AttributeError:
-            pubsub_message = PubSubMessage
-
-        publisher = Publisher(parent, topic, pubsub_message, frequency, mock)
-        self.publishers.append(publisher)
-        return publisher
-
-    def _create_subscriber_entity(self, subscriber_model, parent, on_message=None):
-        topic = subscriber_model.topic
-
-        def custom_on_message(msg, topic=topic):
-            current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-            print_msg = (f'-----\nMessage consumed.\nTopic: "{topic}"\nMsg: {msg}\n'
-                         f'Time: {current_time}')
-            print(print_msg)
-
-            return msg
-
-        on_message = on_message or custom_on_message
-        subscriber = Subscriber(parent, topic, on_message)
-        self.subscribers.append(subscriber)
-        return subscriber
-
-    def _create_rpc_service_entity(self,
-                                   rpc_service_model,
-                                   parent,
-                                   on_request=None,
-                                   rpc_message=None):
-        rpc_msg_module = import_module('nodem.msgs.rpc')
-
-        name = rpc_service_model.name
-        # message classes are attributes of the rpc_msg module
-        if not rpc_message:
-            try:
-                rpc_message = getattr(rpc_msg_module, rpc_service_model.object.name)
-            except AttributeError:
-                rpc_message = RPCMessage
-
-        def custom_on_request(msg):
-            current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-            print(
-                f'<-----\nRequest received.\nName: "{name}.\nTime: {current_time}"')
-            return rpc_message.Response()
-
-        on_request = on_request or custom_on_request
-        rpc_service = RPC_Service(parent, name, rpc_message, on_request)
-
-        self.rpc_services.append(rpc_service)
-        return rpc_service
+            _write_template_to_file(
+                'entities/node.tpl', {
+                    'node_name': node_name,
+                    'broker': node_model.broker.name,
+                    'subscribers': subscribers_data,
+                    'publishers': publishers_data,
+                    'rpc_services': rpc_services_data,
+                    'rpc_clients': rpc_clients_data
+                }, f'code_outputs/node_{node_name}.py')
 
     def parse_topic_bridges(self):
         """A topic bridge connects BrokerA(from_topic) -> BrokerB(to_topic)"""
@@ -328,24 +230,6 @@ class EntitiesHandler:
                                                           ReturnProxyMessage)
             proxy.rpc_service = rpc_service
 
-    def get_node_by_name(self, node_name: str):
-        return get_first(self.nodes, 'name', node_name)
 
-    def get_broker_by_name(self, broker_name: str) -> Broker:
-        return get_first(self.brokers, 'name', broker_name)
-
-    def get_bridge_by_name(self, bridge_name: str, bridge_type: str):
-        bridges = self.topic_bridges if bridge_type == 'topic' else self.rpc_bridges
-        return get_first(bridges, 'name', bridge_name)
-
-    def get_proxy_by_name(self, proxy_name: str) -> Proxy:
-        return get_first(self.proxies, 'name', proxy_name)
-
-    def get_publisher_by_topic(self, topic):
-        return get_first(self.publishers, 'topic', topic)
-
-    def get_rpc_by_name(self, name, rpc_type):
-        if rpc_type == 'service':
-            return get_first(self.rpc_services, 'name', name)
-        else:
-            return get_first(self.rpc_clients, 'name', name)
+a = EntitiesHandler()
+a.parse_model()
