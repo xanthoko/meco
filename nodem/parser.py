@@ -1,5 +1,8 @@
 import os
 import requests
+import argparse
+from pathlib import Path
+from shutil import rmtree
 from json.decoder import JSONDecodeError
 
 from comm_idl.generator import GeneratorCommlibPy
@@ -7,7 +10,8 @@ from comm_idl.generator import GeneratorCommlibPy
 from nodem.entities import Proxy
 from nodem.logic import ReturnProxyMessage
 from nodem.diagram_parser import _write_template_to_file
-from nodem.definitions import MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH
+from nodem.definitions import (MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH,
+                               CODE_OUTPUTS_DIR_PATH)
 from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
@@ -15,6 +19,10 @@ class EntitiesHandler:
     def __init__(self, model_path='models/nodes.ent', messages_path=None):
         self.model_path = model_path
         self.messages_path = messages_path or MESSAGES_MODEL_PATH
+
+        # clear code_outputs directory
+        rmtree(CODE_OUTPUTS_DIR_PATH)
+        Path(CODE_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
 
         self.model = build_model(model_path)
 
@@ -24,7 +32,7 @@ class EntitiesHandler:
         self.parse_nodes()
         self.parse_topic_bridges()
         self.parse_rpc_bridges()
-        # self.parse_proxies()
+        self.parse_proxies()
 
     def parse_broker_connections(self):
         broker_models = self.model.brokers
@@ -228,5 +236,24 @@ class EntitiesHandler:
             proxy.rpc_service = rpc_service
 
 
-a = EntitiesHandler()
-a.parse_model()
+def parse_args() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+
+    # Add arguments
+    parser.add_argument("--model", help="Path to the meco model")
+    parser.add_argument("--messages", help="Path to the message model")
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    cl_args = parse_args()
+
+    default_model_path = 'models/nodes.ent'
+    default_messages_path = 'models/messages.idl'
+
+    model_path = cl_args.model or default_model_path
+    messages_path = cl_args.messages or default_messages_path
+
+    handler = EntitiesHandler(model_path=model_path, messages_path=messages_path)
+    handler.parse_model()

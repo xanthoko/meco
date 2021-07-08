@@ -19,4 +19,4 @@ bridge = RPCBridge(name="{{ name }}",
 
 
 if __name__ == '__main__':
-    # add activation methods here
+    bridge.run()
