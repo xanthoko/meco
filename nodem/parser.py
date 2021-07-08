@@ -17,6 +17,8 @@ class EntitiesHandler:
         self.model_path = model_path
         self.messages_path = messages_path or MESSAGES_MODEL_PATH
 
+        self.default_broker = None
+
         # clear code_outputs directory
         rmtree(CODE_OUTPUTS_DIR_PATH)
         Path(CODE_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
@@ -38,9 +40,13 @@ class EntitiesHandler:
 
             broker_model = broker_model.broker
             broker_type = broker_model.__class__.__name__
+            broker_name = broker_model.name
+
+            if is_default:
+                self.default_broker = broker_name
 
             data = {
-                'name': broker_model.name,
+                'name': broker_name,
                 'host': broker_model.host,
                 'port': broker_model.port,
                 'broker_type': broker_type,
@@ -55,7 +61,7 @@ class EntitiesHandler:
 
             _write_template_to_file(
                 'code_gen/broker.tpl', data,
-                f'{CODE_OUTPUTS_DIR_PATH}/broker_{broker_model.name}.py')
+                f'{CODE_OUTPUTS_DIR_PATH}/broker_{broker_name}.py')
 
     def generate_message_modules(self):
         generator = GeneratorCommlibPy()
@@ -144,10 +150,15 @@ class EntitiesHandler:
                     rpc_client_model.mock
                 })
 
+            if node_model.broker:
+                broker_name = node_model.broker.name
+            else:
+                broker_name = self.default_broker
+
             _write_template_to_file(
                 'code_gen/node.tpl', {
                     'node_name': node_name,
-                    'broker': node_model.broker.name,
+                    'broker': broker_name,
                     'subscribers': subscribers_data,
                     'publishers': publishers_data,
                     'rpc_services': rpc_services_data,
@@ -198,6 +209,11 @@ class EntitiesHandler:
             path_params = _get_params(proxy_model.path)
             header_params = _get_params(proxy_model.header)
 
+            if proxy_model.broker:
+                broker_name = proxy_model.broker.name
+            else:
+                broker_name = self.default_broker
+
             _write_template_to_file(
                 'code_gen/proxy.tpl', {
                     'name': name,
@@ -207,7 +223,7 @@ class EntitiesHandler:
                     'header_params': header_params,
                     'url': proxy_model.url,
                     'method': proxy_model.method,
-                    'broker': proxy_model.broker.name,
+                    'broker': broker_name,
                     'rpc_name': proxy_model.port.name,
                     'rpc_message_module': ReturnProxyMessage
                 }, f'{CODE_OUTPUTS_DIR_PATH}/proxy_{name}.py')

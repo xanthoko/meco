@@ -15,7 +15,6 @@ Node ProxyTake1{
         - publisher:
             topic: unused.topic.A
             message: SonarSensorMsg
-    broker: R4ABroker
 }
 
 Node ProxyGive1{
