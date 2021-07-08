@@ -1,7 +1,13 @@
+import requests
 from time import sleep
 from typing import Optional
 from datetime import datetime
+from json.decoder import JSONDecodeError
 from random import uniform, choice, randint
+
+from requests.api import head
+
+from nodem.logic import ReturnProxyMessage
 
 from commlib.msg import PubSubMessage, RPCMessage
 from commlib.node import Node as CommNode, TransportType
@@ -301,16 +307,56 @@ class RPCBridge(BaseBridge):
 
 
 class Proxy:
-    def __init__(self, name: str, url: str, method: str, broker: Broker):
+    def __init__(self,
+                 name: str,
+                 url: str,
+                 method: str,
+                 broker: Broker,
+                 body_params: Optional[dict] = {},
+                 query_params: Optional[dict] = {},
+                 path_params: Optional[dict] = {},
+                 header_params: Optional[dict] = {}):
         self.name = name
         self.url = url
         self.method = method
         self.broker = broker
+        self.body_params = body_params
+        self.query_params = query_params
+        self.path_params = path_params
+        self.header_params = header_params
 
         self.rpc_service = None
 
     def run(self):
         self.rpc_service.run()
+
+    def make_request(self, msg):
+        if self.method.upper() == 'GET':
+            resp = requests.get(self.url,
+                                headers=self.header_params,
+                                params=self.query_params)
+        elif self.method.upper() == 'POST':
+            resp = requests.post(self.url,
+                                 data=self.body_params,
+                                 headers=self.header_params,
+                                 params=self.query_params)
+        elif self.method.upper() == 'DELETE':
+            resp = requests.delete(self.url, headers=self.header_params)
+        elif self.method.upper() == 'PATCH':
+            resp = requests.patch(self.url,
+                                  data=self.body_params,
+                                  headers=self.header_params)
+
+        if status_code := resp.status_code != 200:
+            print(f'[ERROR] Response was {status_code}')
+            return
+
+        try:
+            resp_msg_data = resp.json()
+        except JSONDecodeError:
+            resp_msg_data = resp.text
+        print('Got rpc call. Returning response')
+        return ReturnProxyMessage.Response(data=resp_msg_data)
 
     def __repr__(self):
         return f'Proxy "{self.name} for "{self.url}"'

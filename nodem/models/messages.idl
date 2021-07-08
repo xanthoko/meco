@@ -32,6 +32,19 @@ Object ThermoData {
   humidity: float
 }
 
+Object BodyParams{
+  location: str
+  time: int
+}
+
+Object QueryParams{
+  index: int '2'
+}
+
+Object PathParams{
+  weathParam: float '10.0'
+}
+
 PubSubMessage ThermoSensorMsg {
   temperature: float
 }

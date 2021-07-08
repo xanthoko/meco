@@ -1,18 +1,15 @@
 import os
-import requests
 import argparse
 from pathlib import Path
 from shutil import rmtree
-from json.decoder import JSONDecodeError
 
 from comm_idl.generator import GeneratorCommlibPy
 
-from nodem.entities import Proxy
 from nodem.logic import ReturnProxyMessage
 from nodem.diagram_parser import _write_template_to_file
+from nodem.utils import build_model, find_class_objects, typecasted_value
 from nodem.definitions import (MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH,
                                CODE_OUTPUTS_DIR_PATH)
-from nodem.utils import build_model, get_first, find_class_objects, typecasted_value
 
 
 class EntitiesHandler:
@@ -190,50 +187,37 @@ class EntitiesHandler:
                 }, f'code_outputs/rbridge_{name}.py')
 
     def parse_proxies(self):
-        """A proxy makes a request to the given url and returns the response
-        as an rpc service."""
-        proxy_models = find_class_objects(self.model.proxies, 'Proxy')
+        proxy_models = find_class_objects(self.model.proxies, 'RESTProxy')
 
         for proxy_model in proxy_models:
-            if proxy_model.broker:
-                broker = get_first(self.brokers, 'name', proxy_model.broker.name)
-            else:
-                broker = self.default_broker
             name = proxy_model.name
-            url = proxy_model.url
-            method = proxy_model.method
 
-            proxy = Proxy(name, url, method, broker)
-            self.proxies.append(proxy)
+            body_params = _get_params(proxy_model.body)
+            query_params = _get_params(proxy_model.query)
+            path_params = _get_params(proxy_model.path)
+            header_params = _get_params(proxy_model.header)
 
-            def make_request(msg, method=method, url=url):
-                if method.upper() == 'GET':
-                    resp = requests.get(url)
-                elif method.upper() == 'POST':
-                    if body_model := proxy_model.body:
-                        data = {
-                            x.name: typecasted_value(x)
-                            for x in body_model.properties
-                        }
-                    else:
-                        data = {}
-                    # TODO: test in a "real" API
-                    resp = requests.post(url, data=data)
+            _write_template_to_file(
+                'entities/proxy.tpl', {
+                    'name': name,
+                    'body_params': body_params,
+                    'query_params': query_params,
+                    'path_params': path_params,
+                    'header_params': header_params,
+                    'url': proxy_model.url,
+                    'method': proxy_model.method,
+                    'broker': proxy_model.broker.name,
+                    'rpc_name': proxy_model.port.name,
+                    'rpc_message_module': ReturnProxyMessage
+                }, f'code_outputs/proxy_{name}.py')
 
-                if status_code := resp.status_code != 200:
-                    print(f'[ERROR] Response was {status_code}')
-                    return
 
-                try:
-                    resp_msg_data = resp.json()
-                except JSONDecodeError:
-                    resp_msg_data = resp.text
-                return ReturnProxyMessage.Response(data=resp_msg_data)
-
-            rpc_service = self._create_rpc_service_entity(proxy_model.port, proxy,
-                                                          make_request,
-                                                          ReturnProxyMessage)
-            proxy.rpc_service = rpc_service
+def _get_params(properties_model):
+    if properties_model:
+        params = {x.name: typecasted_value(x) for x in properties_model.properties}
+    else:
+        params = {}
+    return params
 
 
 def parse_args() -> argparse.ArgumentParser:

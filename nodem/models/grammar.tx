@@ -82,6 +82,7 @@ RESTProxy:
         ('body:' body=[idl.Object])?
         ('query:' query=[idl.Object])?
         ('path:' path=[idl.Object])?
+        ('header:' header=[idl.Object])?
         ('broker:' broker=[bdsl.Broker])?)#
     '}'
 ;
