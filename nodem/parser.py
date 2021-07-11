@@ -16,6 +16,7 @@ class EntitiesHandler:
     def __init__(self, model_path='models/nodes.ent', messages_path=None):
         self.model_path = model_path
         self.messages_path = messages_path or MESSAGES_MODEL_PATH
+        self.model_name = model_path.split('/')[-1]
 
         self.default_broker = None
 
@@ -26,6 +27,9 @@ class EntitiesHandler:
         self.model = build_model(model_path)
 
     def parse_model(self):
+        print()
+        print(f"[INFO] - Generating Entities of {self.model_name}")
+        print()
         self.parse_broker_connections()
         self.generate_message_modules()
         self.parse_nodes()
