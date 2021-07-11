@@ -21,8 +21,8 @@ node.subscribers.append(subscriber_{{ loop.index }}){% endfor %}
 {% for publisher in publishers %}
 pubsub_message_{{ loop.index }} = getattr(msg_module, "{{ publisher.message_module_name }}")
 publisher_{{ loop.index }} = Publisher(node,
-                                       "{{ publisher.topic }}",
-                                       pubsub_message_{{ loop.index }}, frequency={{ publisher.frequency }}, mock={{ publisher.mock }}){% endfor %}
+                                       topic="{{ publisher.topic }}",
+                                       message_class=pubsub_message_{{ loop.index }}, frequency={{ publisher.frequency }}, mock={{ publisher.mock }}){% endfor %}
 
 {% for rpc_service in rpc_services %}
 {% if rpc_service.message_module_name %}
