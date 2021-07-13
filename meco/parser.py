@@ -21,7 +21,10 @@ class EntitiesHandler:
         self.default_broker = None
 
         # clear code_outputs directory
-        rmtree(CODE_OUTPUTS_DIR_PATH)
+        try:
+            rmtree(CODE_OUTPUTS_DIR_PATH)
+        except FileNotFoundError:
+            pass
         Path(CODE_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
 
         self.model = build_model(model_path)

@@ -29,7 +29,10 @@ class DiagramHandler:
         self.rpc_clients = []
 
         # clear doc_outputs directory
-        rmtree(DOC_OUTPUTS_DIR_PATH)
+        try:
+            rmtree(DOC_OUTPUTS_DIR_PATH)
+        except FileNotFoundError:
+            pass
         Path(DOC_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
 
         self.model = build_model(model_path)
