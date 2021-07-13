@@ -1,6 +1,6 @@
-# commlib
-# comm-idl
-# broker-dsl
+# -e git+https://github.com/robotics-4-all/comm-idl.git@6968a026a787cee5d7ebd54621b2fe870a752c29#egg=comm_idl\
+# -e git+https://github.com/robotics-4-all/commlib-py.git@673949235b78c756e66b68c5e9c935e10e73aab1#egg=commlib_py
+# -e git+https://github.com/robotics-4-all/broker-dsl.git@abff7aed46d955cacce971cc7aefcc07917945d9#egg=broker_dsl
 requests==2.25.1
 six==1.16.0
 textX==2.3.0
