@@ -2,7 +2,7 @@
 A library built upon MDE methodologies for modeling the entities and the communications of asynchronous message-driven systems.
 
 <figure>
-  <img src="images/meco_system.png" alt="Trulli" width="350">
+  <img src="images/meco_system.png" alt="Trulli" width="450">
   <figcaption><i>Overview of the described systems</i></figcaption>
   <br>
 </figure>
