@@ -1,4 +1,4 @@
-from nodem.parser import EntitiesHandler
+from meco.parser import EntitiesHandler
 
 example_model_path = '../examples/models/bridge.ent'
 code_parser = EntitiesHandler(example_model_path)

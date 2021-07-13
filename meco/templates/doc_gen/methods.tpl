@@ -1,4 +1,4 @@
-from nodem.msgs.rpc import *
+from meco.msgs.rpc import *
 
 {% for message_name in message_names %}
 def {{ message_name }}_on_request(msg):

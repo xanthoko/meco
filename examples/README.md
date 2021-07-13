@@ -1,15 +1,15 @@
 ## Examples
 
-There are 3 example cases each with its own model. To run them open up a terminal and a broker. 
+There are 3 example cases each with its own MECO model and shared broker and messages models
 
 ### Starting the broker
-Nodem supports 3 broker communication protocols.
+MECO supports 3 broker communication protocols.
 * AMQP
 * MQTT
 * Redis
 
-You can declare the connection parameters of the brokers you choose in *broker.dsl*. 
-To start them in locally use the following commands:
+You can declare the connection parameters of the brokers you choose in *brokers.br*. 
+To start them locally use the following commands:
 * **RABBITMQ**: rabbitmq-server
 * **REDIS**: redis-server
 * **EMQX**: docker run -it --rm --name emqx -p 18083:18083 -p 1883:1883 emqx/emqx:latest
@@ -17,6 +17,7 @@ To start them in locally use the following commands:
 
 ### Example #1  (Simple nodes)
 This example has one OutNode with a publisher and an rpc services and one InNode with a subscriber and an rpc client. The publisher is connected with the subscriber via the same topic and the rpc endpoints via the same name.
+
 
 To check the connections you can fire up a terminal and run `python -i simple_example.py`. You can either run `example_publisher.publish()` or `example_rpc_client.call(request)` to test that the endpoints are valid.
 

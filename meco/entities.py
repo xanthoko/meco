@@ -5,7 +5,7 @@ from datetime import datetime
 from json.decoder import JSONDecodeError
 from random import uniform, choice, randint
 
-from nodem.logic import ReturnProxyMessage
+from meco.logic import ReturnProxyMessage
 
 from commlib.msg import PubSubMessage, RPCMessage
 from commlib.node import Node as CommNode, TransportType

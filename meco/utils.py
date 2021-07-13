@@ -5,7 +5,7 @@ import textx
 from textx import metamodel_from_file
 import textx.scoping.providers as scoping_providers
 
-from nodem.definitions import GRAMMAR_PATH
+from meco.definitions import GRAMMAR_PATH
 
 
 def build_model(model_path: str) -> textx:

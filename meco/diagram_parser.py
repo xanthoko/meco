@@ -4,13 +4,12 @@ from shutil import rmtree
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 
-from nodem.diagram_creator import PlantUMLClient
-from nodem.utils import build_model, get_first, find_class_objects
-from nodem.definitions import (TEMPLATES_DIR_PATH, PLANTUML_MODELS_DIR_PATH,
-                               DOC_OUTPUTS_DIR_PATH)
-from nodem.diagram_entities import (Broker, Node, Subscriber, Publisher,
-                                    RPC_Service, RPC_Client, TopicBridge, RPCBridge,
-                                    Proxy)
+from meco.diagram_creator import PlantUMLClient
+from meco.utils import build_model, get_first, find_class_objects
+from meco.definitions import (TEMPLATES_DIR_PATH, PLANTUML_MODELS_DIR_PATH,
+                              DOC_OUTPUTS_DIR_PATH)
+from meco.diagram_entities import (Broker, Node, Subscriber, Publisher, RPC_Service,
+                                   RPC_Client, TopicBridge, RPCBridge, Proxy)
 
 
 class DiagramHandler:

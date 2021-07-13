@@ -3,7 +3,7 @@ from jinja2 import Environment, FileSystemLoader
 from importlib import import_module
 
 from commlib.msg import RPCMessage, DataClass, DataField, Object
-from nodem.definitions import TEMPLATES_DIR_PATH, MESSAGES_DIR_PATH
+from meco.definitions import TEMPLATES_DIR_PATH, MESSAGES_DIR_PATH
 
 
 @DataClass
@@ -43,5 +43,5 @@ def generate_on_request_methods_file(message_names: List[str]) -> dict:
     with open(path, 'w') as f:
         f.write(output)
 
-    module = import_module('nodem.msgs.methods')
+    module = import_module('meco.msgs.methods')
     return {x: getattr(module, f'{x}_on_request') for x in message_names}

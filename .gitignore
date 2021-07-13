@@ -1,8 +1,8 @@
 *.pyc
 .DS_Store
 
-nodem_xanthoko.egg-info/*
-nodem/msgs
-nodem/plantuml_models
-nodem/doc_outputs
-nodem/code_outputs
+meco.egg-info/*
+meco/msgs
+meco/plantuml_models
+meco/doc_outputs
+meco/code_outputs

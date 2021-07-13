@@ -1,4 +1,4 @@
-from nodem.parser import EntitiesHandler
+from meco.parser import EntitiesHandler
 
 example_model_path = '../examples/models/proxy.ent'
 example_messages_path = '../examples/models/messages.idl'

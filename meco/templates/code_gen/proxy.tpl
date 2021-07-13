@@ -1,6 +1,6 @@
-from nodem.logic import ReturnProxyMessage
-from nodem.entities import Proxy, RPC_Service
-from nodem.code_outputs.broker_{{ broker }} import {{ broker }}
+from meco.logic import ReturnProxyMessage
+from meco.entities import Proxy, RPC_Service
+from meco.code_outputs.broker_{{ broker }} import {{ broker }}
 
 
 body_params = {{ body_params }}

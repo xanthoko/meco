@@ -5,11 +5,11 @@ from shutil import rmtree
 
 from comm_idl.generator import GeneratorCommlibPy
 
-from nodem.logic import ReturnProxyMessage
-from nodem.diagram_parser import _write_template_to_file
-from nodem.utils import build_model, find_class_objects, typecasted_value
-from nodem.definitions import (MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH,
-                               CODE_OUTPUTS_DIR_PATH)
+from meco.logic import ReturnProxyMessage
+from meco.diagram_parser import _write_template_to_file
+from meco.utils import build_model, find_class_objects, typecasted_value
+from meco.definitions import (MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH,
+                              CODE_OUTPUTS_DIR_PATH)
 
 
 class EntitiesHandler:
@@ -94,7 +94,7 @@ class EntitiesHandler:
         by static ones."""
         with open(path, 'r+') as f:
             text = f.read()
-            text = text.replace(' .object', ' nodem.msgs.object')
+            text = text.replace(' .object', ' meco.msgs.object')
             f.seek(0)
             f.write(text)
 

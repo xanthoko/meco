@@ -1,4 +1,4 @@
-from nodem.entities import Broker
+from meco.entities import Broker
 
 from commlib.node import TransportType
 from commlib.transports.amqp import (ConnectionParameters as amqpParams, Credentials

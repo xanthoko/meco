@@ -2,15 +2,15 @@ from importlib import import_module
 
 from commlib.msg import RPCMessage
 
-from nodem.entities import Node, Subscriber, Publisher, RPC_Service, RPC_Client
-from nodem.code_outputs.broker_{{ broker }} import {{ broker }}
+from meco.entities import Node, Subscriber, Publisher, RPC_Service, RPC_Client
+from meco.code_outputs.broker_{{ broker }} import {{ broker }}
 
 {% if publishers %}
-msg_module = import_module('nodem.msgs.pubsub'){% endif %}
+msg_module = import_module('meco.msgs.pubsub'){% endif %}
 {% if rpc_services %}
-rpc_msg_module = import_module('nodem.msgs.rpc'){% endif %}
+rpc_msg_module = import_module('meco.msgs.rpc'){% endif %}
 {% if rpc_clients %}
-rpc_msg_module = import_module('nodem.msgs.rpc'){% endif %}
+rpc_msg_module = import_module('meco.msgs.rpc'){% endif %}
 
 node = Node("{{ node_name }}", {{ broker }})
 

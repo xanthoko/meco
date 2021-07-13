@@ -1,6 +1,6 @@
-from nodem.entities import TopicBridge, RPCBridge
-from nodem.code_outputs.broker_{{ brokerA }} import {{ brokerA }}
-from nodem.code_outputs.broker_{{ brokerB }} import {{ brokerB }}
+from meco.entities import TopicBridge, RPCBridge
+from meco.code_outputs.broker_{{ brokerA }} import {{ brokerA }}
+from meco.code_outputs.broker_{{ brokerB }} import {{ brokerB }}
 
 
 {% if type == 'topic' %}
