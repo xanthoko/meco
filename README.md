@@ -4,8 +4,8 @@ A library built upon MDE methodologies for modeling the entities and the communi
 <figure>
   <img src="images/meco_system.png" alt="Trulli" width="350">
   <figcaption><i>Overview of the described systems</i></figcaption>
+  <br>
 </figure>
-
 
 MECO provides a DSL (Domain Specific Language) for defining the entities and the ports that transfer the messages through the system. It references comm-idl, a DSL for defining the data models of the messages and broker-dsl, a DSL for defining the connection parameters with the brokers.
 
@@ -91,15 +91,107 @@ RPCMessage msgName{
 where RPCRequest and RPCRequests are properties described above.
 
 ### MECO Definition
+The systems described by MECO have 4 entities, the syntax of each is described below.
+
+#### Broker
+`Broker: brokerName (default)`
+
+brokerName is the name of the referenced object from the broker model. There is the possibility to declare a broker as the default for the system by appending "(default)" next to brokerName.
+
+#### Node
+A node has the following syntax.
+```
+Node nodeName{
+    outports: outports
+    inports: inports
+    broker: Broker
+}
+```
+An outport can either be a Publisher or an RPC_Client. The publisher is declared like this.
+```
+publisher:
+    topic: value
+    message: msgName
+    frequency: int
+    mock: bool
+```
+and the rpc client like this
+```
+rpc_client name:
+    message: msgName
+    frequency: int
+    mock: bool
+```
+If set True, the mock attribute sets the outports to simulation mode, in which the messages are given random data before they are sent.
+
+An inport can either be a Subscriber or an RPC_Service. The subscriber is declared like this.
+```
+subscriber:
+    topic: value
+```
+and the rpc service like this
+```
+rpc_service name:
+    message: msgName
+```
+
+#### Bridge
+There are two type of bridges; the TopicBridge and the RPCBridge.
+
+The TopicBridge is declared like this
+```
+TopicBridge bridgeName{
+    brokerA(fromTopic) - brokerB(toTopic)
+}
+```
+
+and the RPCBridge like this
+```
+RPCBridge bridgeName{
+    brokerA(nameA) - brokerB(nameB)
+}
+```
+
+#### RESTProxy
+A rest proxy declaration has the following syntax.
+```
+RESTProxy proxyName{
+    attributes
+}
+```
+The attributes of a proxy are shown in the table below.
+| Attribute | Required |                       Value                       |
+|:---------:|:--------:|:-------------------------------------------------:|
+| port      | YES      | RPC_Service                                       |
+| url       | YES      | String                                            |
+| method    | YES      | Possible values: "GET", "POST", "DELETE", "PATCH" |
+| body      | NO       | Reference to an Object of the messages model      |
+| path      | NO       | Reference to an Object of the messages model      |
+| query     | NO       | Reference to an Object of the messages model      |
+| header    | NO       | Reference to an Object of the messages model      |
+| broker    | NO       | Reference to a Broker of the brokers model        |
 
 
 ### Code Generation
+The code generator performs a model-to-text transformation to generate python files that implement the entities of the model. The generator is activated with the execution of the following command.
 
+`$ python parser.py --model modelName --messages messageName`
+
+where modelName is the name of the MECO model and messageName is the name of the comm-idl model.
 
 ### Documentation Generation
+Besides the code, there is a documentation generator that creates diagrams and markdown files that describe the endpoints and the connections of the system. This generator is activated with the execution of the following command.
 
+`$ python doc_parser.py --model modelName`
 
 ## Installation
+To install this library clone the repo and run
+```
+$ python setup.py install
+```
 
 
-## Examples
+## Examples - Demo
+Examples models can be found in the [examples](examples) directory, covering the functionality of all 4 entities.
+
+Moreover, a demo can be found in the [demo](demo) directory, in which MECO is applied to a "smart home" environment implementing the API for the communication of the house's devices.
