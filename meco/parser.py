@@ -6,7 +6,7 @@ from shutil import rmtree
 from comm_idl.generator import GeneratorCommlibPy
 
 from meco.logic import ReturnProxyMessage
-from meco.diagram_parser import _write_template_to_file
+from meco.doc_parser import _write_template_to_file
 from meco.utils import build_model, find_class_objects, typecasted_value
 from meco.definitions import (MESSAGES_MODEL_PATH, MESSAGES_DIR_PATH, ROOT_PATH,
                               CODE_OUTPUTS_DIR_PATH)

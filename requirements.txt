@@ -1,6 +1,7 @@
 # commlib
 # comm-idl
 # broker-dsl
+requests==2.25.1
 six==1.16.0
 textX==2.3.0
 Jinja2==3.0.1

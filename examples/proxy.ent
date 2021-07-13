@@ -9,7 +9,7 @@ Node thermoSensor{
             message: ProxyMessageR
 }
 
-Proxy testProxy{
+RESTProxy testProxy{
     port:
         - rpc_service listen_data:
     url: "https://www.google.com/"

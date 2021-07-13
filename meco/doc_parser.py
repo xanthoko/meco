@@ -41,7 +41,6 @@ class DiagramHandler:
         self.make_broker_to_broker_diagram()
         self.make_pubsub_routes_diagram()
         self.make_rpc_routes_diagram()
-        self.make_topics_diagram()
         self.make_md_file()
         self.make_routes_md_file()
         self.make_doc_md()
@@ -448,35 +447,6 @@ class DiagramHandler:
                 return [rpc_service.parent, rpc_service]
 
         return []
-
-    def make_topics_diagram(self):
-        topics = set()
-        pub_names = set()
-        sub_names = set()
-
-        per_topic_publishers = defaultdict(list)
-        for publisher in self.publishers:
-            topic = publisher.topic.replace('.', '_')
-            per_topic_publishers[topic].append(publisher.parent.name)
-            topics.add(topic)
-            pub_names.add(publisher.parent.name)
-
-        per_topic_subscribers = defaultdict(list)
-        for subscriber in self.subscribers:
-            topic = subscriber.topic.replace('.', '_')
-            per_topic_subscribers[topic].append(subscriber.parent.name)
-            topics.add(topic)
-            sub_names.add(subscriber.parent.name)
-
-        name_id = 'topics'
-        template_data = {
-            'pub_topics': per_topic_publishers,
-            'sub_topics': per_topic_subscribers,
-            'topics': topics,
-            'pub_names': pub_names,
-            'sub_names': sub_names
-        }
-        self._create_template_file_and_diagram(name_id, template_data)
 
     def make_md_file(self):
         """Creates a markdown file with the main information about the communication
