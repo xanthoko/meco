@@ -28,7 +28,7 @@ class EntitiesHandler:
 
     def parse_model(self):
         print()
-        print(f"[INFO] - Generating Entities of {self.model_name}")
+        print(f"[INFO] - Generating Entities files for {self.model_name}")
         print()
         self.parse_broker_connections()
         self.generate_message_modules()

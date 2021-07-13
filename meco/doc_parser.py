@@ -36,6 +36,9 @@ class DiagramHandler:
         self.parse_model()
 
     def create_documentation(self):
+        print()
+        print(f"[INFO] - Generating Documentation files for {self.model_name}")
+        print()
         self.make_broker_out_ports_diagram()
         self.make_broker_in_ports_diagram()
         self.make_broker_to_broker_diagram()
