@@ -175,14 +175,18 @@ The attributes of a proxy are shown in the table below.
 ### Code Generation
 The code generator performs a model-to-text transformation to generate python files that implement the entities of the model. The generator is activated with the execution of the following command.
 
-```$ python parser.py --model modelName --messages messageName```
+```
+$ python parser.py --model modelName --messages messageName
+```
 
 where modelName is the name of the MECO model and messageName is the name of the comm-idl model.
 
 ### Documentation Generation
 Besides the code, there is a documentation generator that creates diagrams and markdown files that describe the endpoints and the connections of the system. This generator is activated with the execution of the following command.
 
-```$ python doc_parser.py --model modelName```
+```
+$ python doc_parser.py --model modelName
+```
 
 ## Installation
 To install this library clone the repo and run
