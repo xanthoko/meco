@@ -36,6 +36,7 @@ class DiagramHandler:
         Path(DOC_OUTPUTS_DIR_PATH).mkdir(exist_ok=True)
 
         self.model = build_model(model_path)
+        self.model_name = model_path.split('/')[-1]
         self.parse_model()
 
     def create_documentation(self):
