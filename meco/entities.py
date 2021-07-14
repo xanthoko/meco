@@ -55,7 +55,7 @@ class Node:
         return CommNode(node_name=self.name,
                         transport_type=self.broker.transport_type,
                         transport_connection_params=self.broker.connection_params,
-                        debug=True)
+                        debug=False)
 
     def __repr__(self):
         return f'Node {self.name}'
