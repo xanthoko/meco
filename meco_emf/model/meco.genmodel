@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel"
+    modelDirectory="/meco/src-gen" creationIcons="false" editDirectory="/meco.edit/src-gen"
+    editorDirectory="/meco.editor/src-gen" modelPluginID="meco" modelName="Meco" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    codeFormatting="true" importerID="org.eclipse.emf.importer.ecore" complianceLevel="5.0"
+    copyrightFields="false" operationReflection="true" importOrganizing="true">
+  <foreignModel>meco.ecore</foreignModel>
+  <testsDirectory xsi:nil="true"/>
+  <genPackages prefix="Meco" disposableProviderFactory="true" ecorePackage="meco.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="meco.ecore#//RequestMethods">
+      <genEnumLiterals ecoreEnumLiteral="meco.ecore#//RequestMethods/GET"/>
+      <genEnumLiterals ecoreEnumLiteral="meco.ecore#//RequestMethods/POST"/>
+      <genEnumLiterals ecoreEnumLiteral="meco.ecore#//RequestMethods/DELETE"/>
+      <genEnumLiterals ecoreEnumLiteral="meco.ecore#//RequestMethods/PATCH"/>
+    </genEnums>
+    <genClasses ecoreClass="meco.ecore#//Node">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Node/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Node/outports"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Node/inports"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Node/broker"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//OutPort">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//OutPort/node"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//OutPort.1"/>
+    <genClasses ecoreClass="meco.ecore#//Publisher">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Publisher/topic"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Publisher/frequency"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Publisher/mock"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Publisher/message"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//RPC_Client">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPC_Client/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPC_Client/frequency"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPC_Client/mock"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RPC_Client/message"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//InPort"/>
+    <genClasses ecoreClass="meco.ecore#//Subscriber">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Subscriber/topic"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Subscriber/message"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//RPC_Service">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPC_Service/name"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//RESTProxy">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RESTProxy/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RESTProxy/url"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RESTProxy/method"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/rpc_service"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/header"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/path"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/query"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/body"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RESTProxy/broker"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//Bridge"/>
+    <genClasses ecoreClass="meco.ecore#//RPCBridge">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPCBridge/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPCBridge/nameA"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//RPCBridge/nameB"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RPCBridge/brokerB"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//RPCBridge/brokerA"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//TopicBridge">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//TopicBridge/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//TopicBridge/fromTopic"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//TopicBridge/toTopic"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//TopicBridge/brokerB"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//TopicBridge/brokerA"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//Broker">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Broker/default"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Broker/broker"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//Entities">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Entities/nodes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Entities/proxies"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Entities/bridges"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Entities/brokers"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//Broker.1"/>
+    <nestedGenPackages prefix="NewPackage1" disposableProviderFactory="true" ecorePackage="meco.ecore#//comm_idl">
+      <genClasses ecoreClass="meco.ecore#//comm_idl/RPCMessage">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/RPCMessage/name"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/RPCMessage/description"/>
+      </genClasses>
+      <genClasses ecoreClass="meco.ecore#//comm_idl/Object">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/Object/name"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/Object/description"/>
+      </genClasses>
+      <genClasses ecoreClass="meco.ecore#//comm_idl/PubSubMessage">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/PubSubMessage/name"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/PubSubMessage/description"/>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="NewPackage2" disposableProviderFactory="true" ecorePackage="meco.ecore#//broker_dsl"/>
+  </genPackages>
+</genmodel:GenModel>

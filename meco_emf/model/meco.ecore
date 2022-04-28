@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="meco" nsURI="http://www.example.org/meco" nsPrefix="meco">
+  <eClassifiers xsi:type="ecore:EClass" name="Node">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="outports" upperBound="-1"
+        eType="#//OutPort.1" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="inports" upperBound="-1"
+        eType="#//InPort" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="broker" eType="#//Broker.1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OutPort" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="node" upperBound="-1" eType="#//Node"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OutPort" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Publisher" eSuperTypes="#//OutPort.1">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="topic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="frequency" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mock" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="False"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//comm_idl/PubSubMessage"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RPC_Client" eSuperTypes="#//OutPort.1">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="frequency" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mock" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="False"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//comm_idl/RPCMessage"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="InPort" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Subscriber" eSuperTypes="#//InPort">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="topic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//comm_idl/PubSubMessage"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RPC_Service" eSuperTypes="#//InPort">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RESTProxy">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="method" eType="#//RequestMethods"
+        defaultValueLiteral=""/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rpc_service" eType="#//RPC_Service"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="header" eType="#//comm_idl/Object"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="path" eType="#//comm_idl/Object"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="query" eType="#//comm_idl/Object"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//comm_idl/Object"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="broker" eType="#//Broker.1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="RequestMethods" instanceTypeName="">
+    <eLiterals name="GET"/>
+    <eLiterals name="POST" value="1"/>
+    <eLiterals name="DELETE" value="2"/>
+    <eLiterals name="PATCH" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Bridge" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="RPCBridge" eSuperTypes="#//Bridge">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nameA" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nameB" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="brokerB" eType="#//Broker.1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="brokerA" eType="#//Broker.1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TopicBridge" eSuperTypes="#//Bridge">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fromTopic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="toTopic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="brokerB" eType="#//Broker.1"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="brokerA" eType="#//Broker.1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Broker">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="default" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="broker" eType="#//Broker.1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Entities">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1"
+        eType="#//Node" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="proxies" upperBound="-1"
+        eType="#//RESTProxy" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bridges" upperBound="-1"
+        eType="#//Bridge" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="brokers" lowerBound="1"
+        upperBound="-1" eType="#//Broker" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Broker"/>
+  <eSubpackages name="comm_idl">
+    <eClassifiers xsi:type="ecore:EClass" name="RPCMessage">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="Object">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="PubSubMessage">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+  <eSubpackages name="broker_dsl"/>
+</ecore:EPackage>
