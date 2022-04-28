@@ -81,6 +81,16 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference meco.ecore#//Entities/brokers"/>
     </genClasses>
     <genClasses ecoreClass="meco.ecore#//Broker.1"/>
+    <genClasses ecoreClass="meco.ecore#//Action_Client">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Action_Client/name"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Action_Client/message"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Action_Client/frequency"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Action_Client/mock"/>
+    </genClasses>
+    <genClasses ecoreClass="meco.ecore#//Action_Service">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//Action_Service/name"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference meco.ecore#//Action_Service/message"/>
+    </genClasses>
     <nestedGenPackages prefix="NewPackage1" disposableProviderFactory="true" ecorePackage="meco.ecore#//comm_idl">
       <genClasses ecoreClass="meco.ecore#//comm_idl/RPCMessage">
         <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/RPCMessage/name"/>
@@ -93,6 +103,10 @@
       <genClasses ecoreClass="meco.ecore#//comm_idl/PubSubMessage">
         <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/PubSubMessage/name"/>
         <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/PubSubMessage/description"/>
+      </genClasses>
+      <genClasses ecoreClass="meco.ecore#//comm_idl/ActionMessage">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/ActionMessage/name"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute meco.ecore#//comm_idl/ActionMessage/description"/>
       </genClasses>
     </nestedGenPackages>
     <nestedGenPackages prefix="NewPackage2" disposableProviderFactory="true" ecorePackage="meco.ecore#//broker_dsl"/>
